@@ -37,7 +37,7 @@
  "listen": {
   "type": "Parent–teacher talk", "title": "Het tienminutengesprek",
   "intro": "Mevrouw Jansen en haar dochter Noor praten met de mentor, meneer Visser. Listen for: Noor's problem and what they agree.",
-  "voices": {"Meneer Visser": "Xander", "Mevrouw Jansen": "Ellen"},
+  "voices": {"Meneer Visser": "Xander (Enhanced)", "Mevrouw Jansen": "Claire (Enhanced)"},
   "lines": [
    {"who": "Meneer Visser", "t": "Goedenavond, mevrouw Jansen. Kom binnen. Fijn dat Noor er ook bij is."},
    {"who": "Mevrouw Jansen", "t": "Goedenavond. Ja, ze wilde graag mee."},

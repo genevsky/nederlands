@@ -37,7 +37,7 @@
  "listen": {
   "type": "Phone call", "title": "Een afspraak verzetten",
   "intro": "Marieke belt de tandartspraktijk. Listen for: why she calls, and the new day and time.",
-  "voices": {"Ruben": "Xander", "Marieke": "Ellen"},
+  "voices": {"Ruben": "Xander (Enhanced)", "Marieke": "Claire (Enhanced)"},
   "lines": [
    {"who": "Ruben", "t": "Tandartspraktijk De Linde, goedemorgen, u spreekt met Ruben."},
    {"who": "Marieke", "t": "Goedemorgen, met Marieke de Vries. Ik heb volgende week dinsdag een afspraak, maar ik kan helaas niet."},

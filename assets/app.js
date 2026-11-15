@@ -58,7 +58,7 @@ function judge(input,answers,opts){opts=opts||{};const u=nrm(input);if(!u)return
 /* ---------- audio ---------- */
 let AUD=null;
 function stopAudio(){if(AUD){const a=AUD;AUD=null;try{a.pause()}catch(e){}if(a._end)a._end()}$$('.playing').forEach(e=>e.classList.remove('playing'))}
-function play(src,rate,btn){return new Promise(res=>{stopAudio();if(!src){res();return}const a=new Audio(src);AUD=a;a.playbackRate=rate||1;if(btn)btn.classList.add('playing');
+function play(src,rate,btn){return new Promise(res=>{stopAudio();if(!src){res();return}const a=new Audio(src+(src.includes('?')?'&':'?')+'v='+VER);AUD=a;a.playbackRate=rate||1;if(btn)btn.classList.add('playing');
   let fin=false;const end=()=>{if(fin)return;fin=true;if(btn)btn.classList.remove('playing');if(AUD===a)AUD=null;res()};a._end=end;a.onended=end;a.onerror=end;a.play().catch(end)})}
 /* play a list of clips in order; tapping the button again stops */
 let seqId=0;

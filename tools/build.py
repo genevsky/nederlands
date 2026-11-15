@@ -5,7 +5,7 @@ Usage:  python3 -I tools/build.py            (all modules in content/)
         python3 -I tools/build.py m05        (one module; ready.js is still rebuilt from all)
         python3 -I tools/build.py --check    (validate only, no audio)
 
-Audio uses macOS `say` (Dutch voices: Xander nl_NL, Ellen nl_BE) + `afconvert` to AAC .m4a.
+Audio uses macOS `say` (Dutch voices: Claire (Enhanced) nl_NL as narrator, Xander nl_NL) + `afconvert` to AAC .m4a.
 Clips are only regenerated when their text, voice or rate changed (tools/audio_cache.json).
 """
 import hashlib, json, os, re, subprocess, sys, tempfile
@@ -13,7 +13,7 @@ import hashlib, json, os, re, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT, MODS, AUDIO = (os.path.join(ROOT, d) for d in ("content", "modules", "audio"))
 CACHE_F = os.path.join(ROOT, "tools", "audio_cache.json")
-VOICES = ["Xander", "Ellen"]          # default voice for speaker 1, 2 (more speakers alternate)
+VOICES = ["Claire (Enhanced)", "Xander (Enhanced)"]   # narrator/speaker 1, speaker 2 (more speakers alternate)
 RATE = 165                           # words per minute; modules can override with "rate"
 GLOSS = re.compile(r"\{([^{}|]+)\|[^{}]+\}")
 

@@ -37,7 +37,7 @@
  "listen": {
   "type": "Conversation at work", "title": "Maandagochtend bij de koffieautomaat",
   "intro": "Twee collega's, Bram en Fatima, praten over hun weekend. Listen for: where Fatima went, and what Bram did.",
-  "voices": {"Bram": "Xander", "Fatima": "Ellen"},
+  "voices": {"Bram": "Xander (Enhanced)", "Fatima": "Claire (Enhanced)"},
   "lines": [
    {"who": "Bram", "t": "Goedemorgen Fatima! Heb je een leuk weekend gehad?"},
    {"who": "Fatima", "t": "Ja hoor, heel leuk. We zijn naar Zeeland geweest, naar mijn zus."},

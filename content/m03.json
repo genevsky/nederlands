@@ -37,7 +37,7 @@
  "listen": {
   "type": "In a shop", "title": "Een jas omruilen",
   "intro": "Een klant komt terug in een kledingwinkel. Listen for: what the problem is, and what they agree.",
-  "voices": {"Klant": "Xander", "Verkoopster": "Ellen"},
+  "voices": {"Klant": "Xander (Enhanced)", "Verkoopster": "Claire (Enhanced)"},
   "lines": [
    {"who": "Verkoopster", "t": "Goedemiddag, kan ik u helpen?"},
    {"who": "Klant", "t": "Ja, graag. Ik heb vorige week deze jas gekocht, maar hij is te klein. Kan ik hem omruilen?"},
