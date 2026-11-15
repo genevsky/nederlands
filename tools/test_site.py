@@ -58,7 +58,9 @@ def main():
             page.on("pageerror", lambda e: errors.append(f"{name}: {e}"))
             page.on("console", lambda m: m.type == "error" and errors.append(f"{name} console: {m.text}"))
             page.goto(url + "/#/m/" + mid); page.wait_for_selector("ol.steps")
-            # warm-up (empty first time) -> words
+            # warm-up: feedback card + personal items (if any) -> words
+            if page.locator(".fbcard").count(): print(name, "feedback items", page.locator(".fbcard .corr").count())
+            n = run_items(page); print(name, "warm-up items", n)
             act(page, "Woorden"); page.wait_for_selector(".wl")
             act(page, "recall"); n = run_items(page); print(name, "words items", n)
             act(page, "Lezen"); n = run_items(page); print(name, "read items", n)

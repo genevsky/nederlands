@@ -8,7 +8,7 @@ skill averages, open mistakes (most-missed first), weak words, and writing texts
 Usage: python3 -I tools/progress.py            (report)
        python3 -I tools/progress.py --json     (raw state)
 """
-import json, os, re, sys, urllib.request
+import json, os, re, sys, urllib.request, urllib.error
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 cfg = open(os.path.join(ROOT, "assets", "sync-config.js")).read()
@@ -21,7 +21,13 @@ code = open(code_f).read().strip()
 
 req = urllib.request.Request(URL.rstrip("/") + "/rest/v1/rpc/get_progress", data=json.dumps({"p_code": code + "-nl"}).encode(),
                              headers={"Content-Type": "application/json", "apikey": KEY}, method="POST")
-doc = json.load(urllib.request.urlopen(req, timeout=20))
+try:
+    doc = json.load(urllib.request.urlopen(req, timeout=20))
+except urllib.error.URLError:  # python.org builds may lack root certificates: fall back to curl
+    import subprocess
+    out = subprocess.run(["curl", "-s", "-X", "POST", URL.rstrip("/") + "/rest/v1/rpc/get_progress", "-H", "Content-Type: application/json",
+                          "-H", "apikey: " + KEY, "-d", json.dumps({"p_code": code + "-nl"})], capture_output=True, text=True, check=True).stdout
+    doc = json.loads(out)
 S = (doc or {}).get("nl")
 if not S:
     sys.exit("No Dutch progress synced for this code yet.")
