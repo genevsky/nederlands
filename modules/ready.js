@@ -1,1 +1,1 @@
-window.NL_READY=["m01", "m02", "m03", "m04"];
+window.NL_READY=["m01", "m02", "m03", "m04", "m05", "m06"];
