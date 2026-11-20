@@ -150,6 +150,24 @@ def build(mid, cache, audio=True):
     print(f"{mid}: ok ({len(jobs)} clips, {made} new)")
 
 
+def dict_pool(ready):
+    """Per module: sentences that have audio and suit dictation (4–14 words): listening lines, word examples, speaking lines."""
+    pool = {}
+    for mid in ready:
+        js = open(os.path.join(MODS, mid + ".js"), encoding="utf-8").read()
+        m = json.loads(js[js.index("]=") + 2:].rstrip().rstrip(";"))
+        seen, out = set(), []
+        cands = [(l["t"], l.get("au")) for l in m["listen"]["lines"]]
+        cands += [(w["ex"], w.get("aux")) for w in m["words"]]
+        cands += [(l["t"], l.get("au")) for l in m["speak"]["lines"]]
+        for t, au in cands:
+            t = plain(t)
+            if au and 4 <= len(t.split()) <= 14 and t not in seen:
+                seen.add(t); out.append([t, au])
+        pool[mid] = out
+    return pool
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     audio = "--check" not in sys.argv
@@ -165,8 +183,10 @@ def main():
     if audio:
         json.dump(cache, open(CACHE_F, "w"), indent=0, sort_keys=True)
     ready = sorted(f[:-3] for f in os.listdir(MODS) if re.fullmatch(r"m\d\d\.js", f))
-    with open(os.path.join(MODS, "ready.js"), "w") as f:
+    with open(os.path.join(MODS, "ready.js"), "w", encoding="utf-8") as f:
         f.write("window.NL_READY=%s;\n" % json.dumps(ready))
+        f.write("/* dictation pool: sentences with audio, used to vary dictation mistakes in the review */\n")
+        f.write("window.NL_POOL=%s;\n" % json.dumps(dict_pool(ready), ensure_ascii=False, separators=(",", ":")))
     sys.exit(1 if bad else 0)
 
 

@@ -10,24 +10,156 @@
   "Tell what happened on a journey",
   "Write a complaint to NS"
  ],
+ "feedback": {
+  "for": [
+   "m05"
+  ],
+  "note": "**Your story about New York.** 53 words: you reached the minimum this time! Your *omdat*-clause has the verb at the end, and you used the imperfectum (*woonde, speelde*) as asked. Level: A2, moving towards A2+. Next: check the endings and spelling once more before you hand in.",
+  "items": [
+   {
+    "you": "omdat mijn vrienden dichtbij woonde",
+    "better": "omdat mijn vrienden dichtbij woonden",
+    "why": "Plural subject (*mijn vrienden* = *ze*) → plural past: **-den / -ten** (*woonden, speelden, werkten*). The word order was perfect."
+   },
+   {
+    "you": "Ik groiede in New York op.",
+    "better": "Ik groeide op in New York.",
+    "why": "Spelling: **oe** (*groeien*). *Ik groeide in New York op* is also correct, but *op in New York* sounds more natural."
+   },
+   {
+    "you": "een groote stad",
+    "better": "een grote stad",
+    "why": "*groot* + e → **grote**: the syllable ends in a vowel (*gro-te*), so one o is enough. Same with *rood → rode*, *boom → bomen*."
+   },
+   {
+    "you": "Na school spleelde ik in het schoolplein",
+    "better": "Na school speelde ik op het schoolplein",
+    "why": "Spelling **speelde**. And you play ***op** het (school)plein*, ***op** straat*, but ***in** de tuin*."
+   },
+   {
+    "you": "Het was heel druk een luid",
+    "better": "Het was heel druk en lawaaierig",
+    "why": "**en** = and. *luid* is for a sound or voice (*luide muziek*); for a noisy place say **lawaaierig**."
+   },
+   {
+    "you": "Ik herinner me honkball spelen en zwemmen in de zomer.",
+    "better": "Ik herinner me dat ik honkbal speelde en in de zomer zwom.",
+    "why": "After *ik herinner me* use a **dat**-clause with the verb last. *honkbal* has one l. *zwemmen* is irregular: **zwom** (today's topic)."
+   }
+  ]
+ },
  "personal": [
-  {"t": "type", "q": "**Vroeger _____ ik op zaterdag altijd lekker uit.** (uitslapen)", "a": ["sliep"], "x": "*slapen* is irregular: **sliep / sliepen**. *uitslapen* is separable, so *uit* goes to the end: *ik **sliep** lekker **uit***."},
-  {"t": "type", "q": "**Mijn _____ is in maart.** (birthday)", "a": ["verjaardag"], "x": "**de verjaardag** (from *jaar*, year)."},
-  {"t": "type", "q": "**Vorige week _____ ik elke dag naar mijn werk.** (fietsen)", "a": ["fietste"], "x": "Regular verb (module 5): *fiets-* ends in s → **-te**."},
-  {"t": "order", "q": "*I suggest that we call tomorrow.*", "a": ["Ik stel voor dat we morgen bellen."], "x": "*Ik **stel** … **voor***, then a *dat*-clause with the verb last: *dat we morgen **bellen***."}
+  {
+   "t": "type",
+   "q": "**Mijn vrienden _____ dichtbij.** (wonen, past)",
+   "a": [
+    "woonden"
+   ],
+   "x": "Plural subject → **-den**: *ze woon**den***."
+  },
+  {
+   "t": "type",
+   "q": "**In de zomer _____ ik elke dag in het meer.** (zwemmen, past)",
+   "a": [
+    "zwom"
+   ],
+   "x": "*zwemmen* is irregular: **zwom / zwommen**."
+  },
+  {
+   "t": "mc",
+   "q": "Na school speelden we _____ het schoolplein.",
+   "o": [
+    "op",
+    "in"
+   ],
+   "a": 0,
+   "keep": true,
+   "x": "***op** het plein, **op** straat*; but ***in** de tuin, **in** het park*."
+  },
+  {
+   "t": "order",
+   "q": "*I remember that I played baseball.*",
+   "a": [
+    "Ik herinner me dat ik honkbal speelde."
+   ],
+   "x": "*dat* sends the verb to the end: *dat ik honkbal **speelde***."
+  },
+  {
+   "t": "type",
+   "q": "**Vroeger _____ ik op zaterdag altijd lekker uit.** (uitslapen, past)",
+   "a": [
+    "sliep"
+   ],
+   "x": "*slapen* is irregular: **sliep**. *uit* goes to the end: *ik **sliep** lekker **uit***."
+  }
  ],
  "words": [
-  {"nl": "het perron", "en": "platform", "ex": "De trein naar Utrecht vertrekt van perron 5.", "cz": "perron"},
-  {"nl": "de vertraging", "en": "delay", "ex": "De trein had twintig minuten vertraging.", "cz": "vertraging"},
-  {"nl": "overstappen", "en": "to change (trains, buses)", "ex": "In Utrecht moet je overstappen.", "cz": "overstappen"},
-  {"nl": "inchecken", "en": "to check in (with your card)", "ex": "Vergeet niet in te checken met je pas.", "cz": "in te checken"},
-  {"nl": "de storing", "en": "breakdown, technical fault", "ex": "Door een storing reden er geen treinen.", "cz": "storing"},
-  {"nl": "de aansluiting", "en": "connection (to the next train)", "ex": "Ik miste mijn aansluiting in Amersfoort.", "cz": "aansluiting"},
-  {"nl": "vertrekken", "en": "to leave, depart", "ex": "De trein vertrok tien minuten te laat.", "cz": "vertrok"},
-  {"nl": "aankomen", "en": "to arrive", "ex": "We kwamen pas om elf uur aan.", "cz": "kwamen"},
-  {"nl": "het retourtje", "en": "return ticket", "ex": "Een retourtje Amsterdam, alstublieft.", "cz": "retourtje"},
-  {"nl": "de vergoeding", "en": "compensation, refund", "ex": "Bij vertraging kun je een vergoeding aanvragen.", "cz": "vergoeding"},
-  {"nl": "druk", "en": "busy, crowded", "ex": "De trein was erg druk.", "cz": "druk"}
+  {
+   "nl": "het perron",
+   "en": "platform",
+   "ex": "De trein naar Utrecht vertrekt van perron 5.",
+   "cz": "perron"
+  },
+  {
+   "nl": "de vertraging",
+   "en": "delay",
+   "ex": "De trein had twintig minuten vertraging.",
+   "cz": "vertraging"
+  },
+  {
+   "nl": "overstappen",
+   "en": "to change (trains, buses)",
+   "ex": "In Utrecht moet je overstappen.",
+   "cz": "overstappen"
+  },
+  {
+   "nl": "inchecken",
+   "en": "to check in (with your card)",
+   "ex": "Vergeet niet in te checken met je pas.",
+   "cz": "in te checken"
+  },
+  {
+   "nl": "de storing",
+   "en": "breakdown, technical fault",
+   "ex": "Door een storing reden er geen treinen.",
+   "cz": "storing"
+  },
+  {
+   "nl": "de aansluiting",
+   "en": "connection (to the next train)",
+   "ex": "Ik miste mijn aansluiting in Amersfoort.",
+   "cz": "aansluiting"
+  },
+  {
+   "nl": "vertrekken",
+   "en": "to leave, depart",
+   "ex": "De trein vertrok tien minuten te laat.",
+   "cz": "vertrok"
+  },
+  {
+   "nl": "aankomen",
+   "en": "to arrive",
+   "ex": "We kwamen pas om elf uur aan.",
+   "cz": "kwamen"
+  },
+  {
+   "nl": "het retourtje",
+   "en": "return ticket",
+   "ex": "Een retourtje Amsterdam, alstublieft.",
+   "cz": "retourtje"
+  },
+  {
+   "nl": "de vergoeding",
+   "en": "compensation, refund",
+   "ex": "Bij vertraging kun je een vergoeding aanvragen.",
+   "cz": "vergoeding"
+  },
+  {
+   "nl": "druk",
+   "en": "busy, crowded",
+   "ex": "De trein was erg druk.",
+   "cz": "druk"
+  }
  ],
  "read": {
   "type": "News article",
@@ -35,61 +167,316 @@
   "intro": "A news report about a bad morning on the railways. Read the first paragraph for the gist, then the details.",
   "text": "Door een storing rond Utrecht Centraal reden er gisterochtend urenlang bijna geen treinen. Duizenden reizigers kwamen te laat op hun werk of op school.\n\nDe storing begon om 6.45 uur, net voor de {spits|rush hour}. Een computer die de {seinen|signals} regelt, deed het niet meer. Daardoor konden de treinen niet veilig rijden. Op de perrons stonden honderden mensen te wachten. De borden gaven steeds nieuwe tijden aan, maar de treinen kwamen niet.\n\n'Ik stond bijna een uur op het perron,' vertelde Lisa (34), die in Amsterdam werkt. 'Het was koud en het regende. Toen ik eindelijk in een trein zat, was die zo druk dat ik moest staan. Ik moest al mijn afspraken verzetten.' Andere reizigers namen een bus of een taxi, maar een taxi was voor veel mensen te duur. Sommige mensen gingen terug naar huis en werkten de rest van de dag thuis.\n\nOok veel scholieren hadden problemen. Tim (13) zit in de brugklas in Utrecht. 'Ik miste mijn eerste toets van de dag,' zei hij. 'Mijn mentor vond het gelukkig niet erg. Ik mag de toets volgende week {inhalen|make up, take later}.'\n\nOm half elf was de storing {opgelost|fixed}. Daarna reden de treinen weer volgens de {dienstregeling|timetable}, maar het duurde tot de middag voordat alles weer normaal was.\n\nNS biedt de reizigers excuses aan. 'We begrijpen dat dit heel vervelend was,' zei een {woordvoerder|spokesperson}. Reizigers met een vertraging van een halfuur of meer kunnen via de website van NS geld terugvragen.",
   "qs": [
-   {"t": "mc", "q": "Waar gaat dit artikel vooral over?", "o": ["Een storing waardoor veel treinen niet reden", "Een staking van het personeel van NS", "Nieuwe treinen in Utrecht", "Een ongeluk op het perron"], "a": 0, "ctx": "Door een storing rond Utrecht Centraal reden er gisterochtend urenlang bijna geen treinen."},
-   {"t": "mc", "q": "Waarom konden de treinen niet rijden?", "o": ["Een computer voor de seinen deed het niet", "Het sneeuwde te veel", "Er was een ongeluk", "Er waren geen conducteurs"], "a": 0, "ctx": "Een computer die de seinen regelt, deed het niet meer. Daardoor konden de treinen niet veilig rijden."},
-   {"t": "tf", "q": "Lisa kon in de trein zitten.", "a": false, "ctx": "Toen ik eindelijk in een trein zat, was die zo druk dat ik moest staan."},
-   {"t": "tf", "q": "Tim krijgt een onvoldoende voor de toets die hij miste.", "a": false, "ctx": "Ik mag de toets volgende week inhalen."},
-   {"t": "mc", "q": "Waarom vond Tims mentor het waarschijnlijk 'niet erg'?", "o": ["Het was niet Tims schuld dat hij te laat was", "Tim had de toets al gemaakt", "De toets telde niet mee", "De mentor was zelf ook te laat"], "a": 0, "ctx": "Ook veel scholieren hadden problemen. … 'Mijn mentor vond het gelukkig niet erg.'"},
-   {"t": "mc", "q": "Wie kan geld terugvragen?", "o": ["Reizigers met minstens 30 minuten vertraging", "Alle reizigers die een taxi namen", "Alleen scholieren", "Iedereen die gisteren met de trein reisde"], "a": 0, "ctx": "Reizigers met een vertraging van een halfuur of meer kunnen via de website van NS geld terugvragen."}
+   {
+    "t": "mc",
+    "q": "Waar gaat dit artikel vooral over?",
+    "o": [
+     "Een storing waardoor veel treinen niet reden",
+     "Een staking van het personeel van NS",
+     "Nieuwe treinen in Utrecht",
+     "Een ongeluk op het perron"
+    ],
+    "a": 0,
+    "ctx": "Door een storing rond Utrecht Centraal reden er gisterochtend urenlang bijna geen treinen."
+   },
+   {
+    "t": "mc",
+    "q": "Waarom konden de treinen niet rijden?",
+    "o": [
+     "Een computer voor de seinen deed het niet",
+     "Het sneeuwde te veel",
+     "Er was een ongeluk",
+     "Er waren geen conducteurs"
+    ],
+    "a": 0,
+    "ctx": "Een computer die de seinen regelt, deed het niet meer. Daardoor konden de treinen niet veilig rijden."
+   },
+   {
+    "t": "tf",
+    "q": "Lisa kon in de trein zitten.",
+    "a": false,
+    "ctx": "Toen ik eindelijk in een trein zat, was die zo druk dat ik moest staan."
+   },
+   {
+    "t": "tf",
+    "q": "Tim krijgt een onvoldoende voor de toets die hij miste.",
+    "a": false,
+    "ctx": "Ik mag de toets volgende week inhalen."
+   },
+   {
+    "t": "mc",
+    "q": "Waarom vond Tims mentor het waarschijnlijk 'niet erg'?",
+    "o": [
+     "Het was niet Tims schuld dat hij te laat was",
+     "Tim had de toets al gemaakt",
+     "De toets telde niet mee",
+     "De mentor was zelf ook te laat"
+    ],
+    "a": 0,
+    "ctx": "Ook veel scholieren hadden problemen. … 'Mijn mentor vond het gelukkig niet erg.'"
+   },
+   {
+    "t": "mc",
+    "q": "Wie kan geld terugvragen?",
+    "o": [
+     "Reizigers met minstens 30 minuten vertraging",
+     "Alle reizigers die een taxi namen",
+     "Alleen scholieren",
+     "Iedereen die gisteren met de trein reisde"
+    ],
+    "a": 0,
+    "ctx": "Reizigers met een vertraging van een halfuur of meer kunnen via de website van NS geld terugvragen."
+   }
   ]
  },
  "listen": {
   "type": "Conversation at work",
   "title": "Te laat op het werk",
   "intro": "Ilse komt te laat op haar werk. Haar collega Joost vraagt wat er gebeurd is. Listen for: what went wrong, step by step.",
-  "voices": {"Joost": "Xander (Enhanced)", "Ilse": "Claire (Enhanced)"},
+  "voices": {
+   "Joost": "Xander (Enhanced)",
+   "Ilse": "Claire (Enhanced)"
+  },
   "lines": [
-   {"who": "Joost", "t": "Goedemorgen, Ilse! Je bent laat. Wat is er gebeurd?"},
-   {"who": "Ilse", "t": "Wat een ochtend. Mijn trein had een uur vertraging."},
-   {"who": "Joost", "t": "Een uur? Waarom?"},
-   {"who": "Ilse", "t": "Er was een storing bij Amersfoort. We stonden twintig minuten stil in een weiland."},
-   {"who": "Joost", "t": "Wist je niet dat er een storing was?"},
-   {"who": "Ilse", "t": "Nee, ik zag het pas toen ik al in de trein zat."},
-   {"who": "Joost", "t": "En toen?"},
-   {"who": "Ilse", "t": "Toen reden we heel langzaam naar Amersfoort. Daar miste ik mijn aansluiting."},
-   {"who": "Joost", "t": "Wat vervelend. Hoe ben je toen hier gekomen?"},
-   {"who": "Ilse", "t": "Ik nam de bus. Die was zo druk dat ik moest staan."},
-   {"who": "Joost", "t": "Je kunt wel geld terugvragen, hoor."},
-   {"who": "Ilse", "t": "Dat weet ik. Dat doe ik vanavond meteen."},
-   {"who": "Joost", "t": "Goed plan. Wil je eerst een kop koffie?"},
-   {"who": "Ilse", "t": "Graag! Die heb ik echt nodig."}
+   {
+    "who": "Joost",
+    "t": "Goedemorgen, Ilse! Je bent laat. Wat is er gebeurd?"
+   },
+   {
+    "who": "Ilse",
+    "t": "Wat een ochtend. Mijn trein had een uur vertraging."
+   },
+   {
+    "who": "Joost",
+    "t": "Een uur? Waarom?"
+   },
+   {
+    "who": "Ilse",
+    "t": "Er was een storing bij Amersfoort. We stonden twintig minuten stil in een weiland."
+   },
+   {
+    "who": "Joost",
+    "t": "Wist je niet dat er een storing was?"
+   },
+   {
+    "who": "Ilse",
+    "t": "Nee, ik zag het pas toen ik al in de trein zat."
+   },
+   {
+    "who": "Joost",
+    "t": "En toen?"
+   },
+   {
+    "who": "Ilse",
+    "t": "Toen reden we heel langzaam naar Amersfoort. Daar miste ik mijn aansluiting."
+   },
+   {
+    "who": "Joost",
+    "t": "Wat vervelend. Hoe ben je toen hier gekomen?"
+   },
+   {
+    "who": "Ilse",
+    "t": "Ik nam de bus. Die was zo druk dat ik moest staan."
+   },
+   {
+    "who": "Joost",
+    "t": "Je kunt wel geld terugvragen, hoor."
+   },
+   {
+    "who": "Ilse",
+    "t": "Dat weet ik. Dat doe ik vanavond meteen."
+   },
+   {
+    "who": "Joost",
+    "t": "Goed plan. Wil je eerst een kop koffie?"
+   },
+   {
+    "who": "Ilse",
+    "t": "Graag! Die heb ik echt nodig."
+   }
   ],
   "qs": [
-   {"t": "mc", "q": "Hoeveel vertraging had Ilse?", "o": ["Een uur", "Twintig minuten", "Een halfuur", "Tien minuten"], "a": 0, "l": [1]},
-   {"t": "mc", "q": "Wat was het probleem?", "o": ["Een storing bij Amersfoort", "Een ongeluk in een weiland", "Er reden geen bussen", "De conducteur was ziek"], "a": 0, "l": [3]},
-   {"t": "tf", "q": "Ilse wist al voor vertrek dat er een storing was.", "a": false, "l": [5]},
-   {"t": "mc", "q": "Hoe reisde Ilse na Amersfoort verder?", "o": ["Met een drukke bus", "Met een andere trein", "Met de taxi", "Ze liep"], "a": 0, "l": [9]},
-   {"t": "mc", "q": "Wat gaat Ilse vanavond doen?", "o": ["Geld terugvragen", "Een klacht schrijven aan haar baas", "Een nieuwe fiets kopen", "Vroeg naar bed gaan"], "a": 0, "l": [10, 11]}
+   {
+    "t": "mc",
+    "q": "Hoeveel vertraging had Ilse?",
+    "o": [
+     "Een uur",
+     "Twintig minuten",
+     "Een halfuur",
+     "Tien minuten"
+    ],
+    "a": 0,
+    "l": [
+     1
+    ]
+   },
+   {
+    "t": "mc",
+    "q": "Wat was het probleem?",
+    "o": [
+     "Een storing bij Amersfoort",
+     "Een ongeluk in een weiland",
+     "Er reden geen bussen",
+     "De conducteur was ziek"
+    ],
+    "a": 0,
+    "l": [
+     3
+    ]
+   },
+   {
+    "t": "tf",
+    "q": "Ilse wist al voor vertrek dat er een storing was.",
+    "a": false,
+    "l": [
+     5
+    ]
+   },
+   {
+    "t": "mc",
+    "q": "Hoe reisde Ilse na Amersfoort verder?",
+    "o": [
+     "Met een drukke bus",
+     "Met een andere trein",
+     "Met de taxi",
+     "Ze liep"
+    ],
+    "a": 0,
+    "l": [
+     9
+    ]
+   },
+   {
+    "t": "mc",
+    "q": "Wat gaat Ilse vanavond doen?",
+    "o": [
+     "Geld terugvragen",
+     "Een klacht schrijven aan haar baas",
+     "Een nieuwe fiets kopen",
+     "Vroeg naar bed gaan"
+    ],
+    "a": 0,
+    "l": [
+     10,
+     11
+    ]
+   }
   ],
-  "dict": [1, 5, 9, 11]
+  "dict": [
+   1,
+   5,
+   9,
+   11
+  ]
  },
  "gram": {
   "title": "De imperfectum: onregelmatige werkwoorden",
-  "explain": "The most common verbs are **irregular** in the past: the vowel changes and there is no -te/-de. You just have to learn them, but there are only a few dozen you really need, and they come back all the time.\n\n| infinitive | ik/hij/zij | we/jullie/ze | perfectum |\n|---|---|---|---|\n| zijn | ==was== | waren | is geweest |\n| hebben | ==had== | hadden | heeft gehad |\n| gaan | ==ging== | gingen | is gegaan |\n| komen | ==kwam== | kwamen | is gekomen |\n| zien | ==zag== | zagen | heeft gezien |\n| doen | ==deed== | deden | heeft gedaan |\n| nemen | ==nam== | namen | heeft genomen |\n| staan | ==stond== | stonden | heeft gestaan |\n| zitten | ==zat== | zaten | heeft gezeten |\n| rijden | ==reed== | reden | heeft/is gereden |\n| kunnen / moeten | ==kon== / ==moest== | konden / moesten | |\n| weten / zeggen | ==wist== / ==zei== | wisten / zeiden | |\n\n**Tips**\n- Learn them in groups: **ij → ee** (*rijden – reed, blijven – bleef, krijgen – kreeg, schrijven – schreef*).\n- Plural = singular + **-en**, with spelling changes: *kwam → kwamen*, *reed → reden*, *zat → zaten*.\n- Separable verbs split as usual: *aankomen* → *we **kwamen** om elf uur **aan***."
- ,
+  "explain": "The most common verbs are **irregular** in the past: the vowel changes and there is no -te/-de. You just have to learn them, but there are only a few dozen you really need, and they come back all the time.\n\n| infinitive | ik/hij/zij | we/jullie/ze | perfectum |\n|---|---|---|---|\n| zijn | ==was== | waren | is geweest |\n| hebben | ==had== | hadden | heeft gehad |\n| gaan | ==ging== | gingen | is gegaan |\n| komen | ==kwam== | kwamen | is gekomen |\n| zien | ==zag== | zagen | heeft gezien |\n| doen | ==deed== | deden | heeft gedaan |\n| nemen | ==nam== | namen | heeft genomen |\n| staan | ==stond== | stonden | heeft gestaan |\n| zitten | ==zat== | zaten | heeft gezeten |\n| rijden | ==reed== | reden | heeft/is gereden |\n| zwemmen | ==zwom== | zwommen | heeft/is gezwommen |\n| kunnen / moeten | ==kon== / ==moest== | konden / moesten | |\n| weten / zeggen | ==wist== / ==zei== | wisten / zeiden | |\n\n**Tips**\n- Learn them in groups: **ij → ee** (*rijden – reed, blijven – bleef, krijgen – kreeg, schrijven – schreef*).\n- Plural = singular + **-en**, with spelling changes: *kwam → kwamen*, *reed → reden*, *zat → zaten*.\n- Separable verbs split as usual: *aankomen* → *we **kwamen** om elf uur **aan***.",
   "items": [
-   {"t": "type", "q": "**Gisteren _____ ik met de trein naar Utrecht.** (gaan)", "a": ["ging"]},
-   {"t": "type", "q": "**We _____ twintig minuten stil.** (staan)", "a": ["stonden"], "x": "*staan* → **stond / stonden**."},
-   {"t": "mc", "q": "Toen _____ we heel langzaam naar Amersfoort. (rijden)", "o": ["reden", "reedden", "rijdden"], "a": 0, "keep": true, "x": "ij → ee: *reed*, plural ***reden*** (open syllable, so one e)."},
-   {"t": "type", "q": "**Ik _____ het pas toen ik in de trein zat.** (zien)", "a": ["zag"]},
-   {"t": "type", "q": "**Veel reizigers _____ de bus.** (nemen)", "a": ["namen"], "x": "*nemen* → **nam / namen**."},
-   {"t": "mc", "q": "Wat _____ de conducteur? (zeggen)", "o": ["zei", "zegde", "zeide"], "a": 0, "keep": true, "x": "*zeggen* → **zei / zeiden**."},
-   {"t": "type", "q": "**Wij _____ pas om elf uur aan.** (aankomen)", "a": ["kwamen"], "x": "*komen* → *kwam / **kwamen***; *aan* goes to the end."},
-   {"t": "tf", "q": "*blijven* → *ik bleef, wij bleven*", "a": true, "x": "The **ij → ee** group: *blijven – bleef – bleven*."},
-   {"t": "type", "q": "Rewrite in the imperfectum: **Ik krijg een vergoeding.**", "a": ["Ik kreeg een vergoeding."], "x": "ij → ee: *krijgen* → ***kreeg***."},
-   {"t": "order", "q": "*Yesterday the train was very crowded.*", "a": ["Gisteren was de trein erg druk.", "De trein was gisteren erg druk."], "x": "Time word first → verb next: *Gisteren **was** de trein …*"},
-   {"t": "type", "q": "Translate: *I didn't know that the train was late.*", "a": ["Ik wist niet dat de trein vertraging had.", "Ik wist niet dat de trein te laat was.", "Ik wist niet, dat de trein vertraging had.", "Ik wist niet, dat de trein te laat was."], "x": "*weten* → **wist**; after *dat* the verb goes to the end: *dat de trein te laat **was***."},
-   {"t": "type", "q": "Regular or not? **Lisa _____ de rest van de dag thuis.** (werken)", "a": ["werkte"], "x": "*werken* is regular (module 5): *werk-* ends in k → **-te**."}
+   {
+    "t": "type",
+    "q": "**Gisteren _____ ik met de trein naar Utrecht.** (gaan)",
+    "a": [
+     "ging"
+    ]
+   },
+   {
+    "t": "type",
+    "q": "**We _____ twintig minuten stil.** (staan)",
+    "a": [
+     "stonden"
+    ],
+    "x": "*staan* → **stond / stonden**."
+   },
+   {
+    "t": "mc",
+    "q": "Toen _____ we heel langzaam naar Amersfoort. (rijden)",
+    "o": [
+     "reden",
+     "reedden",
+     "rijdden"
+    ],
+    "a": 0,
+    "keep": true,
+    "x": "ij → ee: *reed*, plural ***reden*** (open syllable, so one e)."
+   },
+   {
+    "t": "type",
+    "q": "**Ik _____ het pas toen ik in de trein zat.** (zien)",
+    "a": [
+     "zag"
+    ]
+   },
+   {
+    "t": "type",
+    "q": "**Veel reizigers _____ de bus.** (nemen)",
+    "a": [
+     "namen"
+    ],
+    "x": "*nemen* → **nam / namen**."
+   },
+   {
+    "t": "mc",
+    "q": "Wat _____ de conducteur? (zeggen)",
+    "o": [
+     "zei",
+     "zegde",
+     "zeide"
+    ],
+    "a": 0,
+    "keep": true,
+    "x": "*zeggen* → **zei / zeiden**."
+   },
+   {
+    "t": "type",
+    "q": "**Wij _____ pas om elf uur aan.** (aankomen)",
+    "a": [
+     "kwamen"
+    ],
+    "x": "*komen* → *kwam / **kwamen***; *aan* goes to the end."
+   },
+   {
+    "t": "tf",
+    "q": "*blijven* → *ik bleef, wij bleven*",
+    "a": true,
+    "x": "The **ij → ee** group: *blijven – bleef – bleven*."
+   },
+   {
+    "t": "type",
+    "q": "Rewrite in the imperfectum: **Ik krijg een vergoeding.**",
+    "a": [
+     "Ik kreeg een vergoeding."
+    ],
+    "x": "ij → ee: *krijgen* → ***kreeg***."
+   },
+   {
+    "t": "order",
+    "q": "*Yesterday the train was very crowded.*",
+    "a": [
+     "Gisteren was de trein erg druk.",
+     "De trein was gisteren erg druk."
+    ],
+    "x": "Time word first → verb next: *Gisteren **was** de trein …*"
+   },
+   {
+    "t": "type",
+    "q": "Translate: *I didn't know that the train was late.*",
+    "a": [
+     "Ik wist niet dat de trein vertraging had.",
+     "Ik wist niet dat de trein te laat was.",
+     "Ik wist niet, dat de trein vertraging had.",
+     "Ik wist niet, dat de trein te laat was."
+    ],
+    "x": "*weten* → **wist**; after *dat* the verb goes to the end: *dat de trein te laat **was***."
+   },
+   {
+    "t": "type",
+    "q": "Regular or not? **Lisa _____ de rest van de dag thuis.** (werken)",
+    "a": [
+     "werkte"
+    ],
+    "x": "*werken* is regular (module 5): *werk-* ends in k → **-te**."
+   }
   ]
  },
  "write": {
@@ -99,7 +486,16 @@
   "en": "Tell what happened in the imperfectum (ging, stond, kwam, moest, miste). Formal: u.",
   "min": 60,
   "max": 100,
-  "useful": ["Geachte heer/mevrouw,", "Gisteren reisde ik van … naar …", "De trein vertrok … minuten te laat.", "Door een storing stond de trein …", "Door de vertraging miste ik …", "Ik wil graag een vergoeding / mijn geld terug.", "Ik hoop dat u …", "Met vriendelijke groet,"],
+  "useful": [
+   "Geachte heer/mevrouw,",
+   "Gisteren reisde ik van … naar …",
+   "De trein vertrok … minuten te laat.",
+   "Door een storing stond de trein …",
+   "Door de vertraging miste ik …",
+   "Ik wil graag een vergoeding / mijn geld terug.",
+   "Ik hoop dat u …",
+   "Met vriendelijke groet,"
+  ],
   "check": [
    "I wrote when and where, what happened, the result for me, and what I want.",
    "Irregular verbs in the imperfectum: *ging, stond, kwam, nam, moest*.",
@@ -112,9 +508,15 @@
  "speak": {
   "tip": "**g** and **ch** (*ging, gisteren, toch*) are the same rough sound, made at the back of the throat, like a gentle clearing. Don't say a hard English *g*: *ging* never sounds like *going*. In the south it's softer; around Amsterdam and Rotterdam it's harder.",
   "lines": [
-   {"t": "De trein had een uur vertraging."},
-   {"t": "We stonden twintig minuten stil."},
-   {"t": "Toen nam ik de bus."}
+   {
+    "t": "De trein had een uur vertraging."
+   },
+   {
+    "t": "We stonden twintig minuten stil."
+   },
+   {
+    "t": "Toen nam ik de bus."
+   }
   ],
   "task": "A colleague asks why you were late. Tell in 30–60 seconds what happened on your journey this morning. Use at least four irregular past forms (*ging, stond, kwam, nam, moest, zag*)."
  },

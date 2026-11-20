@@ -136,7 +136,14 @@ const IV=[0,1,3,7,14,30,60,120];
 function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
 
 /* review deck: open errors due + words due */
-function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>Object.assign({},e.it,{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}))}
+function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}),e))}
+/* a dictation mistake comes back as a different sentence from the same module (preferring ones that share words with
+   the original), so you practise the sounds and spellings, not one memorised sentence; it never repeats the last one served */
+function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]];if(it.t!=='dict'||!P||!P.length)return it;
+  const orig=it.a[0],words=t=>t.toLowerCase().replace(/[^a-zà-ÿ' ]/g,' ').split(/\s+/).filter(w=>w.length>2),ow=new Set(words(orig));
+  const c=shuffle(P.filter(([t])=>t!==orig&&t!==e.last)).map(([t,au])=>({t,au,sc:words(t).filter(w=>ow.has(w)).length})).sort((a,b)=>b.sc-a.sc).slice(0,4);
+  if(e.last&&e.last!==orig)c.push({t:orig,au:(it.au||[])[0]});const pick=c[Math.floor(Math.random()*c.length)];
+  if(!pick||!pick.au)return it;return Object.assign(it,{a:[pick.t],au:[pick.au],_var:pick.t,kind:it.kind+' · new sentence, same sounds'})}
 function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes(w.cz)?w.cz:null;
   if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:ex};
   if(b>=5&&w.au)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · listen and write',q:'Write the word you hear (with article if it has one).',au:[w.au],a:[w.nl],art:true};
@@ -144,7 +151,7 @@ function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes
 function dueWords(){const d=today();return Object.values(S.srs).filter(w=>w.due<=d).sort((a,b)=>a.due-b.due||a.b-b.b).map(wordItem)}
 function reviewHook(it,ok){const d=today();
   if(it._word){const w=S.srs[it._word];if(w){w.ts=Date.now();w.n=(w.n||0)+1;if(ok){w.b=Math.min(7,(w.b||1)+1);w.due=d+IV[w.b]}else{w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
-  if(it._err){const e=S.errs[it.id];if(e){e.ts=Date.now();if(ok){e.ok=(e.ok||0)+1;if(e.ok>=2)e.res=true;else e.due=d+3}else{e.ok=0;e.n=(e.n||0)+1;e.due=d+1}}}
+  if(it._err){const e=S.errs[it.id];if(e){e.ts=Date.now();if(it.t==='dict')e.last=it._var||it.a[0];if(ok){e.ok=(e.ok||0)+1;if(e.ok>=2)e.res=true;else e.due=d+3}else{e.ok=0;e.n=(e.n||0)+1;e.due=d+1}}}
   save()}
 
 /* ---------- action bar ---------- */
