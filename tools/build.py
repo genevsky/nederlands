@@ -31,6 +31,7 @@ GATES = {
                     "vertrok vertrokken bezocht bezochten riep riepen mocht mochten"),
 }
 GATE_FORMS = {tag: set(forms.split()) for tag, (_, forms) in GATES.items()}
+CODES = {"WO", "VERB", "TENSE", "SP", "ART", "ADJ", "PREP", "PRON", "WORD", "MISS", "PL", "PUNCT", "?"}  # same list as CODES in app.js
 
 
 def plan_order():
@@ -76,12 +77,12 @@ def gate_check(m, mid):
         for k, c in enumerate(m["chunks"]):
             check(produced(c["items"]), self_, f"chunks[{k}]")
         check(produced(m["practice"]), self_, "practice")
-        check([w["nl"] for w in m["words"]] + [w.get("cz", "") for w in m["words"]], self_, "words")
+        check([w["nl"] for w in m["words"] + m.get("preps", [])] + [w.get("cz", "") for w in m["words"] + m.get("preps", [])], self_, "words")
     else:
         need(m.get("flow") == 2, "modules from now on need \"flow\": 2 (grammar explained before it is practised)")
         need(2 <= len(m["gram"].get("check", [])) <= 4, "gram.check: 2–4 easy items after the explanation")
         check(produced(m["gram"]["check"]) + produced(m["gram"]["items"]), self_, "gram")
-        check([w["nl"] for w in m["words"]] + [w.get("cz", "") for w in m["words"]], self_, "words")
+        check([w["nl"] for w in m["words"] + m.get("preps", [])] + [w.get("cz", "") for w in m["words"] + m.get("preps", [])], self_, "words")
 
 
 def plain(s):
@@ -181,6 +182,22 @@ def validate(m, mid):
         need(("l" in l and 0 <= l["l"] < n) or l.get("t"), f"speak.lines[{i}]: needs t or valid l")
     if m.get("flow") == 2:
         check_items(m["gram"].get("check", []), "gram.check")
+        need(14 <= len(W) <= 16, "words: flow-2 modules have 14–16 words")
+        P = m.get("preps", [])
+        need(3 <= len(P) <= 4, "preps: 3–4 fixed preposition combinations (wachten op, trots zijn op…)")
+        for i, w in enumerate(P):
+            need(all(w.get(k) for k in ("nl", "en", "ex", "cz")), f"preps[{i}]: needs nl, en, ex, cz")
+            need(re.search(r"(^|[^A-Za-zÀ-ÿ])" + re.escape(w["cz"]) + r"(?![A-Za-zÀ-ÿ])", w["ex"]), f"preps[{i}]: cz {w['cz']!r} is not a whole word in ex")
+        F = Sp.get("func")
+        need(F and F.get("title") and 4 <= len(F.get("phrases", [])) <= 7, "speak.func: title + 4–7 phrases for one everyday task")
+        need(all(f.get("nl") and f.get("en") for f in F["phrases"]), "speak.func.phrases: need nl and en")
+        need(Sp.get("role"), "speak.role: the role-play situation for practising with Claude")
+    fb = m.get("feedback")
+    if fb and fb.get("text"):
+        codes = re.findall(r"\[\[[^|\]]+\|([^\]]+)\]\]", fb["text"])
+        need(codes, "feedback.text: mark mistakes as [[fragment|CODE]]")
+        bad = sorted(set(codes) - CODES)
+        need(not bad, f"feedback.text: unknown codes {bad}; use {sorted(CODES)}")
     gate_check(m, mid)
 
 
@@ -213,6 +230,12 @@ def build(mid, cache, audio=True):
         D["au"] = A("disc")
         jobs.append((" \n".join(plain(p) for p in D["text"].split("\n\n")), VOICES[0], rate - 10, D["au"]))
         return finish(m, mid, jobs, cache, audio)
+    for k, w in enumerate(m.get("preps", [])):
+        w["au"], w["aux"] = A(f"pw{k}"), A(f"px{k}")
+        jobs += [(w["nl"], VOICES[0], rate - 15, w["au"]), (plain(w["ex"]), VOICES[0], rate, w["aux"])]
+    for k, f in enumerate((m["speak"].get("func") or {}).get("phrases", [])):
+        f["au"] = A(f"f{k}")
+        jobs.append((plain(f["nl"]).replace("…", "").strip(), VOICES[0], rate - 10, f["au"]))
     R = m["read"]
     R["au"] = A("read")
     jobs.append((" \n".join(plain(p) for p in R["text"].split("\n\n")), VOICES[0], rate, R["au"]))

@@ -21,6 +21,8 @@ const mid=n=>'m'+String(n).padStart(2,'0');
 /* every session (module mNN or lesson lNN) gets an id and a slot = its position in the plan (dates follow the slot) */
 C.forEach((c,i)=>{c.slot=i+1;c.id=c.id||mid(c.n)});
 const lab=c=>c.les?'L'+c.les:String(c.n),nameOf=c=>c.les?'Les '+c.les:'Module '+c.n;
+/* writing-feedback codes (feedback.text marks mistakes as [[fragment|CODE]]) */
+const CODES={WO:'Word order: check where the verbs go',VERB:'Verb form: check the subject (ik/hij/we…) and the other verbs',TENSE:'Tense: present, past, perfect?',SP:'Spelling',ART:'Article: de, het, een, or none',ADJ:'Adjective: -e or no -e',PREP:'Preposition: use a different one (or none)',PRON:'Pronoun (hij/hem, je/jouw/uw, die/dat…)',WORD:"Word choice: this word doesn't fit here",MISS:'A word is missing here',PL:'Plural form of the noun',PUNCT:'Punctuation or capital letter','?':'Unclear: say it another way'};
 const SKILL={words:'Vocabulary',read:'Reading',listen:'Listening',dict:'Dictation',gram:'Grammar',write:'Writing',speak:'Speaking'};
 
 /* ---------- markdown-lite: **b** *i* ==highlight== {word|gloss} tables (| a | b |) ---------- */
@@ -136,7 +138,7 @@ function logResult(it,ok,opts){if(!it.id)return;const d=today();
   if(it.word){const w=S.srs[it.word.nl];if(w){w.ts=Date.now();if(!ok){w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
   save()}
 const IV=[0,1,3,7,14,30,60,120];
-function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
+function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
 
 /* review deck: open errors due + words due */
 function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}),e))}
@@ -147,7 +149,10 @@ function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]]
   const c=shuffle(P.filter(([t])=>t!==orig&&t!==e.last)).map(([t,au])=>({t,au,sc:words(t).filter(w=>ow.has(w)).length})).sort((a,b)=>b.sc-a.sc).slice(0,4);
   if(e.last&&e.last!==orig)c.push({t:orig,au:(it.au||[])[0]});const pick=c[Math.floor(Math.random()*c.length)];
   if(!pick||!pick.au)return it;return Object.assign(it,{a:[pick.t],au:[pick.au],_var:pick.t,kind:it.kind+' · new sentence, same sounds'})}
+/* a preposition card blanks the whole word only (not 'op' inside 'opgeven') */
+const gapWord=(ex,cz)=>ex.replace(new RegExp('(^|[^A-Za-zÀ-ÿ])'+cz.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![A-Za-zÀ-ÿ])'),'$1_____');
 function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes(w.cz)?w.cz:null;
+  if(w.kind==='prep'&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Preposition · '+(b<=1?'new':'box '+b),q:'**'+gapWord(ex,cz)+'**\n\n*('+w.en+')*',a:[cz],x:ex};
   if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:ex};
   if(b>=5&&w.au)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · listen and write',q:'Write the word you hear (with article if it has one).',au:[w.au],a:[w.nl],art:true};
   return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · '+(b<=1?'new':'box '+b),q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:ex}}
@@ -226,19 +231,29 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
   if(kind==='warm'){
     const fb=M.feedback;const goals=M.goals||[];
     let h=`<div class="card"><h2>In this module</h2><ul class="goals">${goals.map(g=>'<li>'+esc(g)+'</li>').join('')}</ul><p class="small mut">${M.flow===2?'New grammar explained first · words · reading · listening + dictation · grammar practice · writing · speaking':'Words · reading · listening + dictation · grammar · writing · speaking'}. About 20 minutes; your place is saved at every step.</p></div>`;
-    if(fb&&fb.items&&fb.items.length)h+=`<div class="card fbcard"><h2>Feedback on your writing</h2>${fb.note?md(fb.note):''}${fb.items.map(f=>`<div class="corr"><p class="you"><s>${esc(f.you)}</s></p><p class="better">${esc(f.better)}</p><p class="small mut">${md(f.why).replace(/^<p>|<\/p>$/g,'')}</p></div>`).join('')}</div>`;
+    const corr=fb&&fb.items?fb.items.map(f=>`<div class="corr"><p class="you"><s>${esc(f.you)}</s></p><p class="better">${esc(f.better)}</p><p class="small mut">${md(f.why).replace(/^<p>|<\/p>$/g,'')}</p></div>`).join(''):'';
+    if(fb&&fb.text){const plain=fb.text.replace(/\[\[([^|\]]+)\|[^\]]+\]\]/g,'$1'),used=[...new Set([...fb.text.matchAll(/\[\[[^|\]]+\|([^\]]+)\]\]/g)].map(m=>m[1]))];
+      const marked=esc(fb.text).replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g,(m,t,c)=>`<span class="ec">${t}<sup>${c}</sup></span>`).replace(/\n/g,'<br>');
+      const prevW=(fb.for||[])[0],rev=prevW&&S.writing[prevW]&&S.writing[prevW].rev;
+      h+=`<div class="card fbcard"><h2>Your writing, marked</h2>${fb.note?md(fb.note):''}<p class="small mut">Each code marks a mistake. Try to fix them yourself first: that's how you remember the rule. Then compare with the corrections.</p>
+        <dl class="codes">${used.map(c=>`<div><dt>${esc(c)}</dt><dd>${esc(CODES[c]||'')}</dd></div>`).join('')}</dl><p class="mtext">${marked}</p>
+        <textarea id="fbt" rows="6" lang="nl" spellcheck="false">${esc(rev||plain)}</textarea><div class="row"><button class="btn sm ghost" type="button" id="fbs">Show the corrections</button></div><div id="fbc" hidden>${corr}${fb.better?`<h3>A corrected version</h3><p class="wtext">${esc(fb.better)}</p>`:''}</div></div>`}
+    else if(fb&&fb.items&&fb.items.length)h+=`<div class="card fbcard"><h2>Feedback on your writing</h2>${fb.note?md(fb.note):''}${corr}</div>`;
     const warm=shuffle(dueErrs()).slice(0,5).concat(shuffle(dueWords()).slice(0,5)).concat((M.personal||[]).map((p,k)=>Object.assign({id:id+'.p.'+k,kind:'Made for you'},p)));
-    if(warm.length){h+=`<div class="card"><h2>Warm-up</h2><p class="small mut">${warm.length} quick questions: your recent mistakes and words that are due. Retrieval first, new material after.</p><div id="run"></div></div>`;stage.innerHTML=h;
+    const bindFb=()=>{const b=$('#fbs');if(!b)return;b.onclick=()=>{const prevW=(fb.for||[])[0];if(prevW&&S.writing[prevW]){S.writing[prevW].rev=$('#fbt').value;S.writing[prevW].revts=Date.now();save()}$('#fbc').hidden=false;b.hidden=true;$('#fbc').scrollIntoView({behavior:'smooth'})}};
+    if(warm.length){h+=`<div class="card"><h2>Warm-up</h2><p class="small mut">${warm.length} quick questions: your recent mistakes and words that are due. Retrieval first, new material after.</p><div id="run"></div></div>`;stage.innerHTML=h;bindFb();
       runItems($('#run'),warm,{retry:true,review:reviewHook,onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Warm-up done</p>';setAct(nxl,nxt,true)}})}
-    else{stage.innerHTML=h;setAct('Start: '+STEPS[1][1],nxt,true)}}
-  else if(kind==='words'){const W=M.words;
-    stage.innerHTML=`<div class="card"><h2>${M.kind==='les'?'The forms to remember':'New words'}</h2><p class="small mut">${M.kind==='les'?'Listen, say each form out loud with its example. Then recall them from memory: they also go into your daily review, so they come back until you know them.':'Listen, say each word out loud, and read the example. Then you\'ll recall them from memory.'}</p>${speedBtn()}<div class="wl">${W.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p><p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div></div><div class="card" id="runc" hidden><h2>Recall</h2><div id="run"></div></div>`;
+    else{stage.innerHTML=h;bindFb();setAct('Start: '+STEPS[1][1],nxt,true)}}
+  else if(kind==='words'){const W=M.words,P=(M.preps||[]).map(x=>Object.assign({kind:'prep'},x));
+    stage.innerHTML=`<div class="card"><h2>${M.kind==='les'?'The forms to remember':'New words'}</h2><p class="small mut">${M.kind==='les'?'Listen, say each form out loud with its example. Then recall them from memory: they also go into your daily review, so they come back until you know them.':'Listen, say each word out loud, and read the example. Then you\'ll recall them from memory.'}</p>${speedBtn()}<div class="wl">${W.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p><p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div>${P.length?`<h3 class="vc">Vaste combinaties</h3><p class="small mut">Verbs and adjectives that always take the same preposition. Learn them as one block: you'll be asked for the preposition.</p><div class="wl">${P.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-q="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p><p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div>`:''}</div><div class="card" id="runc" hidden><h2>Recall</h2><div id="run"></div></div>`;
     bindSpeed(stage);$$('[data-a]',stage).forEach(b=>b.onclick=async()=>{const w=W[+b.dataset.a];await play(w.au,rate(),b);if(w.aux)await play(w.aux,rate(),b)});
+    $$('[data-q]',stage).forEach(b=>b.onclick=async()=>{const w=P[+b.dataset.q];await play(w.au,rate(),b);if(w.aux)await play(w.aux,rate(),b)});
     setAct('I\'ve studied these → recall',()=>{$('#runc').hidden=false;$('.wl',stage).closest('.card').classList.add('fold');$('#runc').scrollIntoView({behavior:'smooth'});
       const items=shuffle(W.map((w,k)=>{const cz=w.cz&&w.ex.includes(w.cz)?w.cz:null;
         return k%2&&cz?{t:'type',id:id+'.w.'+k,word:w,q:'**'+w.ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:w.ex,kind:'Fill the gap'}
-                     :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:w.ex,kind:'Recall'}}));
-      runItems($('#run'),items,{retry:true,sk:'words',mod:id,onDone:s=>{sc('words',s);addWords(id,W);$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time. These words are now in your daily review.</p>`;setAct(nxl,nxt,true)}})})}
+                     :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:w.ex,kind:'Recall'}}).concat(
+        P.map((w,k)=>({t:'type',id:id+'.pr.'+k,word:w,q:'**'+gapWord(w.ex,w.cz)+'**\n\n*('+w.en+')*',a:[w.cz],x:w.ex,kind:'Preposition'}))));
+      runItems($('#run'),items,{retry:true,sk:'words',mod:id,onDone:s=>{sc('words',s);addWords(id,W.concat(P));$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time. These words are now in your daily review.</p>`;setAct(nxl,nxt,true)}})})}
   else if(kind==='read'){const R=M.read;
     stage.innerHTML=`<div class="card read"><p class="eyebrow">${esc(R.type||'Text')}</p><h2>${esc(R.title)}</h2>${R.intro?`<p class="small mut">${esc(R.intro)}</p>`:''}<div class="row">${R.au?`<button class="btn sm ghost" type="button" id="rau">${icoPlay} Read along</button>${speedBtn()}`:''}<span class="small mut">Tap underlined words for a translation.</span></div><article class="txt">${md(R.text)}</article></div><div class="card"><h2>Questions</h2><p class="small mut">Answer from the text. You can scroll back up.</p><div id="run"></div></div>`;
     bindGloss(stage);bindSpeed(stage);const ra=$('#rau');if(ra)ra.onclick=()=>AUD?stopAudio():play(R.au,rate(),ra);
@@ -289,8 +304,15 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
       (navigator.clipboard?navigator.clipboard.writeText(p):Promise.reject()).then(()=>{e.target.textContent='Copied ✓'}).catch(()=>{ta.select()})})}
   else if(kind==='speak'){const Sp=M.speak;const lines=Sp.lines;
     stage.innerHTML=`<div class="card"><p class="eyebrow">Speaking · shadowing</p><h2>Say it like a Dutch speaker</h2>${md(Sp.tip||'')}<p class="small mut">For each sentence: listen → record yourself → compare. Copy the melody and rhythm, not just the words. Then do the speaking task out loud.</p>${speedBtn()}<div class="sh">${lines.map((l,k)=>`<div class="shl"><p>${inline(l.t)}</p><div class="row"><button class="btn sm ghost" type="button" data-p="${k}">${icoPlay} Listen</button><button class="btn sm ghost rec" type="button" data-r="${k}">● Record</button><button class="btn sm ghost" type="button" data-m="${k}" hidden>▶ Me</button></div></div>`).join('')}</div>
-      ${Sp.task?`<div class="task"><h3>Speaking task</h3>${md(Sp.task)}<div class="row"><button class="btn sm ghost rec" type="button" data-r="task">● Record (max 90 s)</button><button class="btn sm ghost" type="button" data-m="task" hidden>▶ Me</button></div></div>`:''}</div>`;
+      ${Sp.func?`<div class="task func"><p class="eyebrow">Useful in real life</p><h3>${esc(Sp.func.title)}</h3>${Sp.func.tip?md(Sp.func.tip):''}<div class="wl">${Sp.func.phrases.map((f,k)=>`<div class="w"><button class="pbtn" type="button" data-f="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(f.nl)}</b></p><p class="ex">${esc(f.en)}</p></div></div>`).join('')}</div></div>`:''}
+      ${Sp.task?`<div class="task"><h3>Speaking task</h3>${md(Sp.task)}<div class="row"><button class="btn sm ghost rec" type="button" data-r="task">● Record (max 90 s)</button><button class="btn sm ghost" type="button" data-m="task" hidden>▶ Me</button></div></div>`:''}
+      <div class="task"><h3>Practise the conversation with Claude</h3><p class="small mut">Copies a role-play prompt. Paste it into the Claude app and answer in Dutch (typing or by voice). Claude plays the other person and gives a short correction after each turn.</p><div class="row"><button class="btn sm ghost" type="button" id="rp">Copy role-play prompt</button></div></div></div>`;
     bindSpeed(stage);bindGloss(stage);const recs={};let mr=null,cur=null;
+    if(Sp.func)$$('[data-f]',stage).forEach(b=>b.onclick=()=>play(Sp.func.phrases[+b.dataset.f].au,rate(),b));
+    $('#rp').onclick=e=>{const role=Sp.role||('Een gesprek over dit onderwerp: '+String(Sp.task||M.title).replace(/[*=]/g,''));
+      const ph=Sp.func?Sp.func.phrases.map(f=>'- '+f.nl).join('\n'):'';
+      const p=`Ik leer Nederlands (niveau ${M.lvl}, doel B1). Doe een rollenspel met mij, in het Nederlands.\n\nSituatie: ${role}\n\nRegels:\n- Jij speelt de andere persoon. Begin jij het gesprek.\n- Spreek eenvoudig Nederlands op mijn niveau, 1 tot 3 zinnen per beurt, en wacht dan op mijn antwoord.\n- Als ik fouten maak: zet na je antwoord één korte regel in het Engels met de belangrijkste correctie.\n- Na ongeveer 8 beurten: stop en geef me 3 tips in het Engels.${ph?'\n\nLaat me deze zinnen gebruiken:\n'+ph:''}`;
+      (navigator.clipboard?navigator.clipboard.writeText(p):Promise.reject()).then(()=>{e.target.textContent='Copied ✓'}).catch(()=>{e.target.textContent='Copy failed: allow clipboard access'})};
     $$('[data-p]',stage).forEach(b=>b.onclick=()=>play(lines[+b.dataset.p].au,rate(),b));
     $$('[data-m]',stage).forEach(b=>b.onclick=()=>recs[b.dataset.m]&&play(recs[b.dataset.m],1,b));
     $$('[data-r]',stage).forEach(b=>b.onclick=async()=>{const k=b.dataset.r;

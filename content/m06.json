@@ -160,6 +160,50 @@
    "en": "busy, crowded",
    "ex": "De trein was erg druk.",
    "cz": "druk"
+  },
+  {
+   "nl": "de conducteur",
+   "en": "conductor (on the train)",
+   "ex": "De conducteur controleert je kaartje.",
+   "cz": "conducteur"
+  },
+  {
+   "nl": "de spits",
+   "en": "rush hour",
+   "ex": "In de spits is de trein altijd vol.",
+   "cz": "spits"
+  },
+  {
+   "nl": "op tijd",
+   "en": "on time",
+   "ex": "Gelukkig vertrekt de bus wel op tijd.",
+   "cz": "op tijd"
+  },
+  {
+   "nl": "de klacht",
+   "en": "complaint",
+   "ex": "Ik wil een klacht indienen bij NS.",
+   "cz": "klacht"
+  }
+ ],
+ "preps": [
+  {
+   "nl": "wachten op",
+   "en": "to wait for",
+   "ex": "We wachten al twintig minuten op de trein.",
+   "cz": "op"
+  },
+  {
+   "nl": "klagen over",
+   "en": "to complain about",
+   "ex": "Veel reizigers klagen over de vertragingen.",
+   "cz": "over"
+  },
+  {
+   "nl": "vragen om",
+   "en": "to ask for",
+   "ex": "Ik vraag om een vergoeding.",
+   "cz": "om"
   }
  ],
  "read": {
@@ -553,7 +597,34 @@
     "t": "Toen nam ik de bus."
    }
   ],
-  "task": "A colleague asks why you were late. Tell in 30–60 seconds what happened on your journey this morning. Use at least four irregular past forms (*ging, stond, kwam, nam, moest, zag*)."
+  "task": "A colleague asks why you were late. Tell in 30–60 seconds what happened on your journey this morning. Use at least four irregular past forms (*ging, stond, kwam, nam, moest, zag*).",
+  "func": {
+   "title": "Klagen en om een oplossing vragen",
+   "tip": "Stay polite and clear: say what happened, why it's a problem for you, and end with a concrete question. Use **u**.",
+   "phrases": [
+    {
+     "nl": "Ik wil graag een klacht indienen.",
+     "en": "I'd like to make a complaint."
+    },
+    {
+     "nl": "Het probleem is dat de trein een uur te laat was.",
+     "en": "The problem is that the train was an hour late."
+    },
+    {
+     "nl": "Ik vind het erg vervelend, want ik heb een afspraak gemist.",
+     "en": "I find it very annoying, because I missed an appointment."
+    },
+    {
+     "nl": "Ik wil graag mijn geld terug.",
+     "en": "I'd like my money back."
+    },
+    {
+     "nl": "Wat kunt u voor mij doen?",
+     "en": "What can you do for me?"
+    }
+   ]
+  },
+  "role": "Jij werkt bij de servicebalie van NS op Utrecht Centraal. Ik ben een reiziger. Mijn trein had vanochtend een uur vertraging en ik heb daardoor een belangrijke afspraak gemist. Ik kom klagen en wil een vergoeding. Wees vriendelijk, maar vraag eerst naar details (welke trein, hoe laat, mijn reiskaart)."
  },
  "extra": "- At the station, listen to one announcement and catch the words *vertraging*, *perron* or *overstappen*.\n- On **nos.nl**, read one short news item about train or traffic problems and find three irregular past-tense verbs."
 }

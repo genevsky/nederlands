@@ -135,3 +135,12 @@ details.gref summary .num{margin-right:6px;vertical-align:middle}details.gref .g
 details.useful .gram{padding-top:8px}
 .chk{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
 @media (max-width:520px){.tabs a{font-size:.85rem;padding:6px 2px}}
+/* coded writing feedback, fixed prepositions, everyday-task phrases */
+.mtext{line-height:1.9;background:var(--soft);border-radius:12px;padding:12px 14px}
+.ec{background:var(--bad-bg);border-bottom:2px solid var(--bad);border-radius:3px;padding:0 2px}
+.ec sup{color:var(--bad);font:700 .62rem Figtree,sans-serif;margin-left:2px;letter-spacing:.02em}
+dl.codes{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 10px;font-size:.82rem}
+dl.codes div{display:flex;gap:6px;align-items:baseline}dl.codes dt{font-weight:700;color:var(--bad)}dl.codes dd{margin:0;color:var(--muted)}
+#fbt{width:100%;margin-top:10px}
+h3.vc{margin-top:18px}
+.task.func .wl{margin-top:8px}
