@@ -4,10 +4,11 @@
  "lvl": "A2+",
  "title": "Een reis met de trein",
  "en": "Public transport",
+ "flow": 2,
  "goals": [
+  "Use the irregular past forms from Les 1 to tell what happened",
+  "Mix irregular and regular verbs (-te/-de) in one story",
   "Understand a news article and a conversation about a train delay",
-  "Use the most common irregular verbs in the imperfectum",
-  "Tell what happened on a journey",
   "Write a complaint to NS"
  ],
  "feedback": {
@@ -44,7 +45,7 @@
    {
     "you": "Ik herinner me honkball spelen en zwemmen in de zomer.",
     "better": "Ik herinner me dat ik honkbal speelde en in de zomer zwom.",
-    "why": "After *ik herinner me* use a **dat**-clause with the verb last. *honkbal* has one l. *zwemmen* is irregular: **zwom** (today's topic)."
+    "why": "After *ik herinner me* use a **dat**-clause with the verb last. *honkbal* has one l. *zwemmen* is irregular: **zwom**. You'll practise it in Les 3."
    }
   ]
  },
@@ -56,14 +57,6 @@
     "woonden"
    ],
    "x": "Plural subject → **-den**: *ze woon**den***."
-  },
-  {
-   "t": "type",
-   "q": "**In de zomer _____ ik elke dag in het meer.** (zwemmen, past)",
-   "a": [
-    "zwom"
-   ],
-   "x": "*zwemmen* is irregular: **zwom / zwommen**."
   },
   {
    "t": "mc",
@@ -86,11 +79,19 @@
   },
   {
    "t": "type",
-   "q": "**Vroeger _____ ik op zaterdag altijd lekker uit.** (uitslapen, past)",
+   "q": "**Mijn vrienden en ik _____ elke dag op straat.** (voetballen, past)",
    "a": [
-    "sliep"
+    "voetbalden"
    ],
-   "x": "*slapen* is irregular: **sliep**. *uit* goes to the end: *ik **sliep** lekker **uit***."
+   "x": "*voetbal-* ends in l → **-den** (plural)."
+  },
+  {
+   "t": "type",
+   "q": "**Ik ben moe, want ik heb niet _____.** (uitslapen)",
+   "a": [
+    "uitgeslapen"
+   ],
+   "x": "Separable verb: *ge* goes between the parts: *uit**ge**slapen*."
   }
  ],
  "words": [
@@ -133,8 +134,8 @@
   {
    "nl": "vertrekken",
    "en": "to leave, depart",
-   "ex": "De trein vertrok tien minuten te laat.",
-   "cz": "vertrok"
+   "ex": "De trein naar Utrecht vertrekt om acht uur.",
+   "cz": "vertrekt"
   },
   {
    "nl": "aankomen",
@@ -370,8 +371,8 @@
   ]
  },
  "gram": {
-  "title": "De imperfectum: onregelmatige werkwoorden",
-  "explain": "The most common verbs are **irregular** in the past: the vowel changes and there is no -te/-de. You just have to learn them, but there are only a few dozen you really need, and they come back all the time.\n\n| infinitive | ik/hij/zij | we/jullie/ze | perfectum |\n|---|---|---|---|\n| zijn | ==was== | waren | is geweest |\n| hebben | ==had== | hadden | heeft gehad |\n| gaan | ==ging== | gingen | is gegaan |\n| komen | ==kwam== | kwamen | is gekomen |\n| zien | ==zag== | zagen | heeft gezien |\n| doen | ==deed== | deden | heeft gedaan |\n| nemen | ==nam== | namen | heeft genomen |\n| staan | ==stond== | stonden | heeft gestaan |\n| zitten | ==zat== | zaten | heeft gezeten |\n| rijden | ==reed== | reden | heeft/is gereden |\n| zwemmen | ==zwom== | zwommen | heeft/is gezwommen |\n| kunnen / moeten | ==kon== / ==moest== | konden / moesten | |\n| weten / zeggen | ==wist== / ==zei== | wisten / zeiden | |\n\n**Tips**\n- Learn them in groups: **ij → ee** (*rijden – reed, blijven – bleef, krijgen – kreeg, schrijven – schreef*).\n- Plural = singular + **-en**, with spelling changes: *kwam → kwamen*, *reed → reden*, *zat → zaten*.\n- Separable verbs split as usual: *aankomen* → *we **kwamen** om elf uur **aan***.",
+  "title": "Onregelmatige werkwoorden in een verhaal",
+  "explain": "In **Les 1** you learned the past of the 16 most common irregular verbs. Today you use them to tell what happened, together with the regular verbs from Module 5.\n\n**1. Regular or irregular?** Is the verb one of the 16 below? Use its own form. Otherwise: stem + -te/-de ('t kofschip).\n\n| verb | singular | plural |\n|---|---|---|\n| zijn · hebben | ==was== · ==had== | waren · hadden |\n| gaan · komen · zien | ==ging== · ==kwam== · ==zag== | gingen · kwamen · zagen |\n| doen · nemen | ==deed== · ==nam== | deden · namen |\n| staan · zitten | ==stond== · ==zat== | stonden · zaten |\n| rijden · krijgen · blijven | ==reed== · ==kreeg== · ==bleef== | reden · kregen · bleven |\n| kunnen · moeten | ==kon== · ==moest== | konden · moesten |\n| weten · zeggen | ==wist== · ==zei== | wisten · zeiden |\n\n**2. Separable verbs split, also in the past.** The little word goes to the end:\n- *aankomen*: We ==kwamen== om elf uur ==aan==.\n- *overstappen* (regular): In Utrecht ==stapte== ik ==over==.\n\n**3. How Dutch people tell a story.** They often start with the perfectum and then continue in the imperfectum: *Ik **heb** een rare ochtend **gehad**. De trein ==had== vertraging en ik ==stond== een uur op het perron.*",
   "items": [
    {
     "t": "type",
@@ -476,6 +477,40 @@
      "werkte"
     ],
     "x": "*werken* is regular (module 5): *werk-* ends in k → **-te**."
+   }
+  ],
+  "check": [
+   {
+    "t": "mc",
+    "q": "Gisteren _____ ik met de trein naar Utrecht. (gaan)",
+    "o": [
+     "ging",
+     "gaade"
+    ],
+    "a": 0,
+    "keep": true
+   },
+   {
+    "t": "mc",
+    "q": "We _____ pas om elf uur aan. (aankomen)",
+    "o": [
+     "kwamen",
+     "aankwamen"
+    ],
+    "a": 0,
+    "keep": true,
+    "x": "Separable: *we **kwamen** … **aan***."
+   },
+   {
+    "t": "mc",
+    "q": "In Utrecht _____ ik over. (overstappen)",
+    "o": [
+     "stapte",
+     "stap"
+    ],
+    "a": 0,
+    "keep": true,
+    "x": "*overstappen* is regular: *stap-* ends in p → **-te**."
    }
   ]
  },

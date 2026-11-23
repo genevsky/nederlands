@@ -126,3 +126,12 @@ ul.bank{list-style:none;padding:0;margin:10px 0 0}ul.bank li{display:flex;gap:10
 .lv{font-size:.72rem;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--soft);color:var(--muted)}.lv.l4,.lv.l5{background:var(--good-bg);color:var(--good)}.lv.l6{background:var(--good);color:var(--card)}
 .code{font-size:1.1rem;letter-spacing:.02em}
 #sync h2{margin-top:0}
+/* lessons (focused grammar sessions) and the grammar reference */
+ol.mods li.les .num{border-radius:50%;font-size:.78rem}
+ol.mods li.les.ready .num{background:var(--orange);color:#fff}
+ol.mods li.les .t b::after{content:" · grammar lesson";font-weight:400;color:var(--muted);font-size:.8rem}
+details.gref{padding:0}details.gref summary{cursor:pointer;padding:14px 18px;list-style:none}details.gref summary::-webkit-details-marker{display:none}
+details.gref summary .num{margin-right:6px;vertical-align:middle}details.gref .gram{padding:0 18px 16px}
+details.useful .gram{padding-top:8px}
+.chk{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+@media (max-width:520px){.tabs a{font-size:.85rem;padding:6px 2px}}

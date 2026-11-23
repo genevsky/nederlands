@@ -18,6 +18,9 @@ const view=$('#view');
 const C=window.CURRICULUM,CO=window.COURSE;
 const READY=new Set(window.NL_READY||[]);
 const mid=n=>'m'+String(n).padStart(2,'0');
+/* every session (module mNN or lesson lNN) gets an id and a slot = its position in the plan (dates follow the slot) */
+C.forEach((c,i)=>{c.slot=i+1;c.id=c.id||mid(c.n)});
+const lab=c=>c.les?'L'+c.les:String(c.n),nameOf=c=>c.les?'Les '+c.les:'Module '+c.n;
 const SKILL={words:'Vocabulary',read:'Reading',listen:'Listening',dict:'Dictation',gram:'Grammar',write:'Writing',speak:'Speaking'};
 
 /* ---------- markdown-lite: **b** *i* ==highlight== {word|gloss} tables (| a | b |) ---------- */
@@ -169,7 +172,7 @@ function modScore(m){if(!m||!m.sc)return null;const v=Object.values(m.sc).filter
 function streak(){let d=today(),n=0;if(!S.days[d])d--;while((S.days[d]||0)>=60){n++;d--}return n}
 const mins=s=>Math.round((s||0)/60);
 function weekMins(){const d=today(),dow=(new Date().getDay()+6)%7;let t=0;for(let k=0;k<=dow;k++)t+=S.days[d-k]||0;return mins(t)}
-function nextModule(){return C.find(c=>READY.has(mid(c.n))&&!(S.mods[mid(c.n)]||{}).done)}
+function nextModule(){return C.find(c=>READY.has(c.id)&&!(S.mods[c.id]||{}).done)}
 function setNav(r){$$('nav.tabs a').forEach(a=>a.setAttribute('aria-current',a.dataset.r===r?'page':'false'))}
 function loadModule(id){return new Promise((res,rej)=>{if(window.NL_MOD&&NL_MOD[id])return res(NL_MOD[id]);const s=document.createElement('script');s.src='modules/'+id+'.js?v='+VER;s.onload=()=>NL_MOD&&NL_MOD[id]?res(NL_MOD[id]):rej();s.onerror=rej;document.head.appendChild(s)})}
 
@@ -177,7 +180,8 @@ function loadModule(id){return new Promise((res,rej)=>{if(window.NL_MOD&&NL_MOD[
 let curMod=null;
 function route(){stopAudio();ticking=false;curMod=null;setAct(null);busyItem=false;
   const h=location.hash.replace(/^#\/?/,'').split('/');
-  if(h[0]==='m'&&h[1])return viewModule(h[1],h[2]!=null?+h[2]:null);
+  if(h[0]==='m'&&h[1])return viewModule(h[1],h[2]==='end'?-1:h[2]!=null&&h[2]!==''?+h[2]:null);
+  if(h[0]==='grammar')return viewGrammar();
   if(h[0]==='review')return viewReview();
   if(h[0]==='words')return viewWords();
   if(h[0]==='progress')return viewProgress();
@@ -188,51 +192,57 @@ function viewHome(){setNav('home');const nm=nextModule(),due=dueErrs().length+du
   const d0=today(),dow=(new Date().getDay()+6)%7;const strip=[0,1,2,3,4,5,6].map(k=>{const d=d0-dow+k,s=S.days[d]||0;return`<div class="dd${s>=60?' on':''}${d===d0?' now':''}"><span>${['M','T','W','T','F','S','S'][k]}</span><i></i></div>`}).join('');
   const doneN=Object.values(S.mods).filter(m=>m.done).length;
   let h=`<section class="hero"><p class="eyebrow">Nederlands · A2 → B2</p><h1>${greet()}</h1>
-   <div class="stats"><div><b>${doneN}</b><span>of ${C.length} modules</span></div><div><b>${Object.values(S.srs).filter(w=>w.b>=2).length}</b><span>words learning</span></div><div><b>${wk}</b><span>min this week</span></div><div><b>${st}</b><span>day streak</span></div></div>
+   <div class="stats"><div><b>${doneN}</b><span>of ${C.length} sessions</span></div><div><b>${Object.values(S.srs).filter(w=>w.b>=2).length}</b><span>words learning</span></div><div><b>${wk}</b><span>min this week</span></div><div><b>${st}</b><span>day streak</span></div></div>
    <div class="week">${strip}</div></section>`;
-  if(nm){const id=mid(nm.n),m=S.mods[id];const dt=planDate(nm.n);
-    h+=`<a class="card next" href="#/m/${id}"><p class="eyebrow">${m&&m.step?'Continue':'Next module'} · ${fmt(dt)}</p><h2><span class="num">${nm.n}</span> ${esc(nm.title)}</h2><p class="mut">${esc(nm.en)} · ${esc(nm.gram)}</p><span class="btn go">${m&&m.step?'Resume':'Start'} · ~20 min</span></a>`}
+  if(nm){const id=nm.id,m=S.mods[id];const dt=planDate(nm.slot);
+    h+=`<a class="card next" href="#/m/${id}"><p class="eyebrow">${m&&m.step?'Continue':nm.les?'Next: grammar lesson':'Next module'} · ${fmt(dt)}</p><h2><span class="num">${lab(nm)}</span> ${esc(nm.title)}</h2><p class="mut">${esc(nm.en)} · ${esc(nm.gram)}</p><span class="btn go">${m&&m.step?'Resume':'Start'} · ~${nm.les?15:20} min</span></a>`}
   else h+=`<div class="card"><h2>All built modules done 🎉</h2><p class="mut">The next module appears on its planned day. Keep your words fresh with the daily review.</p></div>`;
   h+=`<a class="card rev" href="#/review"><div><h3>Daily review</h3><p class="mut small">${due?due+' cards due: words + your past mistakes':'Nothing due. Come back tomorrow.'}</p></div><span class="badge${due?'':' zero'}">${due}</span></a>`;
-  CO.phases.forEach(p=>{const mods=C.filter(c=>c.ph===p.id);const dn=mods.filter(c=>(S.mods[mid(c.n)]||{}).done).length;
+  CO.phases.forEach(p=>{const mods=C.filter(c=>c.ph===p.id);const dn=mods.filter(c=>(S.mods[c.id]||{}).done).length;
     h+=`<details class="phase"${mods.some(c=>c===nm)||(!nm&&p.id===1)?' open':''}><summary><div><h2>${esc(p.name)}</h2><p class="small mut">${esc(p.goal)}</p></div><span class="pp">${dn}/${mods.length}</span></summary><ol class="mods">`+
-     mods.map(c=>{const id=mid(c.n),m=S.mods[id]||{},ready=READY.has(id),sc=modScore(m);
-      return `<li class="${m.done?'done':ready?'ready':'later'}">${ready?`<a href="#/m/${id}">`:'<div>'}<span class="num">${c.n}</span><span class="t"><b>${esc(c.title)}</b><small>${esc(c.gram)}</small></span><span class="r">${m.done?'✓ '+(sc!=null?sc+'%':''):ready?(m.step?'in progress':fmt(planDate(c.n))):fmt(planDate(c.n))}</span>${ready?'</a>':'</div>'}</li>`}).join('')+'</ol></details>'});
+     mods.map(c=>{const id=c.id,m=S.mods[id]||{},ready=READY.has(id),sc=modScore(m);
+      return `<li class="${m.done?'done':ready?'ready':'later'}${c.les?' les':''}">${ready?`<a href="#/m/${id}">`:'<div>'}<span class="num">${lab(c)}</span><span class="t"><b>${esc(c.title)}</b><small>${esc(c.gram)}</small></span><span class="r">${m.done?'✓ '+(sc!=null?sc+'%':''):ready?(m.step?'in progress':fmt(planDate(c.slot))):fmt(planDate(c.slot))}</span>${ready?'</a>':'</div>'}</li>`}).join('')+'</ol></details>'});
   view.innerHTML=h;window.scrollTo(0,0)}
 function greet(){const h=new Date().getHours();return h<12?'Goedemorgen!':h<18?'Goedemiddag!':'Goedenavond!'}
 
 /* ----- module player ----- */
-const STEPS=[['warm','Opwarmen'],['words','Woorden'],['read','Lezen'],['listen','Luisteren'],['gram','Grammatica'],['write','Schrijven'],['speak','Spreken'],['end','Klaar']];
+/* flow 1 (modules 1–5): grammar after the texts. flow 2 (from module 6): the new grammar is explained first ('intro', with a few easy
+   checks), so nothing is tested before it is taught; the 'gram' step is then practice. Lessons (kind 'les') have their own steps. */
+const ST1=[['warm','Opwarmen'],['words','Woorden'],['read','Lezen'],['listen','Luisteren'],['gram','Grammatica'],['write','Schrijven'],['speak','Spreken'],['end','Klaar']];
+const ST2=[['warm','Opwarmen'],['intro','Uitleg'],['words','Woorden'],['read','Lezen'],['listen','Luisteren'],['gram','Oefenen'],['write','Schrijven'],['speak','Spreken'],['end','Klaar']];
+const STL=[['disc','Ontdekken'],['learn','Uitleg'],['prac','Oefenen'],['words','Vormen'],['write','Gebruiken'],['end','Klaar']];
 async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="mut" style="padding:40px 0">Loading…</p>';let M;
   try{M=await loadModule(id)}catch(e){view.innerHTML='<div class="card"><h2>Module not available yet</h2><p><a href="#/">Back</a></p></div>';return}
   curMod=id;ticking=true;const st=S.mods[id]||(S.mods[id]={ts:Date.now(),step:0,sc:{},ms:0});
-  let step=stepArg!=null?stepArg:(st.done?0:st.step||0);
+  const STEPS=M.kind==='les'?STL:M.flow===2?ST2:ST1;const CM=C.find(c=>c.id===id)||{n:M.n,les:M.les};
+  let step=stepArg!=null?(stepArg<0?STEPS.length-1:Math.min(stepArg,STEPS.length-1)):(st.done?0:Math.min(st.step||0,STEPS.length-1));
+  const nxt=()=>go(step+1),nxl='Next: '+(STEPS[step+1]||['',''])[1];
   const go=k=>{step=k;st.step=Math.max(st.step||0,k);if(k>=STEPS.length-1){st.done=st.done||Date.now()}st.ts=Date.now();save();location.hash='#/m/'+id+'/'+k};
-  const head=()=>`<div class="mhead"><a href="#/" class="back" aria-label="Back to overview">←</a><div><p class="eyebrow">Module ${M.n} · ${esc(M.lvl)}</p><h1>${esc(M.title)}</h1></div></div>
+  const head=()=>`<div class="mhead"><a href="#/" class="back" aria-label="Back to overview">←</a><div><p class="eyebrow">${nameOf(CM)} · ${esc(M.lvl)}</p><h1>${esc(M.title)}</h1></div></div>
     <ol class="steps">${STEPS.map((s,k)=>`<li class="${k<step?'ok':k===step?'cur':''}${k<=(st.step||0)||st.done?' reach':''}"><a href="#/m/${id}/${k}" ${k<=(st.step||0)||st.done?'':'tabindex="-1" aria-disabled="true"'}><i></i><span>${s[1]}</span></a></li>`).join('')}</ol>`;
   view.innerHTML=head()+'<section id="stage"></section>';const stage=$('#stage');window.scrollTo(0,0);
   const sc=(k,v)=>{st.sc[k]=v;st.ts=Date.now();save()};
   const kind=STEPS[step][0];
   if(kind==='warm'){
     const fb=M.feedback;const goals=M.goals||[];
-    let h=`<div class="card"><h2>In this module</h2><ul class="goals">${goals.map(g=>'<li>'+esc(g)+'</li>').join('')}</ul><p class="small mut">Words · reading · listening + dictation · grammar · writing · speaking. About 20 minutes; your place is saved at every step.</p></div>`;
+    let h=`<div class="card"><h2>In this module</h2><ul class="goals">${goals.map(g=>'<li>'+esc(g)+'</li>').join('')}</ul><p class="small mut">${M.flow===2?'New grammar explained first · words · reading · listening + dictation · grammar practice · writing · speaking':'Words · reading · listening + dictation · grammar · writing · speaking'}. About 20 minutes; your place is saved at every step.</p></div>`;
     if(fb&&fb.items&&fb.items.length)h+=`<div class="card fbcard"><h2>Feedback on your writing</h2>${fb.note?md(fb.note):''}${fb.items.map(f=>`<div class="corr"><p class="you"><s>${esc(f.you)}</s></p><p class="better">${esc(f.better)}</p><p class="small mut">${md(f.why).replace(/^<p>|<\/p>$/g,'')}</p></div>`).join('')}</div>`;
     const warm=shuffle(dueErrs()).slice(0,5).concat(shuffle(dueWords()).slice(0,5)).concat((M.personal||[]).map((p,k)=>Object.assign({id:id+'.p.'+k,kind:'Made for you'},p)));
     if(warm.length){h+=`<div class="card"><h2>Warm-up</h2><p class="small mut">${warm.length} quick questions: your recent mistakes and words that are due. Retrieval first, new material after.</p><div id="run"></div></div>`;stage.innerHTML=h;
-      runItems($('#run'),warm,{retry:true,review:reviewHook,onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Warm-up done</p>';setAct('Next: Woorden',()=>go(1),true)}})}
-    else{stage.innerHTML=h;setAct('Start: Woorden',()=>go(1),true)}}
+      runItems($('#run'),warm,{retry:true,review:reviewHook,onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Warm-up done</p>';setAct(nxl,nxt,true)}})}
+    else{stage.innerHTML=h;setAct('Start: '+STEPS[1][1],nxt,true)}}
   else if(kind==='words'){const W=M.words;
-    stage.innerHTML=`<div class="card"><h2>New words</h2><p class="small mut">Listen, say each word out loud, and read the example. Then you'll recall them from memory.</p>${speedBtn()}<div class="wl">${W.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p><p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div></div><div class="card" id="runc" hidden><h2>Recall</h2><div id="run"></div></div>`;
+    stage.innerHTML=`<div class="card"><h2>${M.kind==='les'?'The forms to remember':'New words'}</h2><p class="small mut">${M.kind==='les'?'Listen, say each form out loud with its example. Then recall them from memory: they also go into your daily review, so they come back until you know them.':'Listen, say each word out loud, and read the example. Then you\'ll recall them from memory.'}</p>${speedBtn()}<div class="wl">${W.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p><p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div></div><div class="card" id="runc" hidden><h2>Recall</h2><div id="run"></div></div>`;
     bindSpeed(stage);$$('[data-a]',stage).forEach(b=>b.onclick=async()=>{const w=W[+b.dataset.a];await play(w.au,rate(),b);if(w.aux)await play(w.aux,rate(),b)});
     setAct('I\'ve studied these → recall',()=>{$('#runc').hidden=false;$('.wl',stage).closest('.card').classList.add('fold');$('#runc').scrollIntoView({behavior:'smooth'});
       const items=shuffle(W.map((w,k)=>{const cz=w.cz&&w.ex.includes(w.cz)?w.cz:null;
         return k%2&&cz?{t:'type',id:id+'.w.'+k,word:w,q:'**'+w.ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:w.ex,kind:'Fill the gap'}
                      :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:w.ex,kind:'Recall'}}));
-      runItems($('#run'),items,{retry:true,sk:'words',mod:id,onDone:s=>{sc('words',s);addWords(id,W);$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time. These words are now in your daily review.</p>`;setAct('Next: Lezen',()=>go(2),true)}})})}
+      runItems($('#run'),items,{retry:true,sk:'words',mod:id,onDone:s=>{sc('words',s);addWords(id,W);$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time. These words are now in your daily review.</p>`;setAct(nxl,nxt,true)}})})}
   else if(kind==='read'){const R=M.read;
     stage.innerHTML=`<div class="card read"><p class="eyebrow">${esc(R.type||'Text')}</p><h2>${esc(R.title)}</h2>${R.intro?`<p class="small mut">${esc(R.intro)}</p>`:''}<div class="row">${R.au?`<button class="btn sm ghost" type="button" id="rau">${icoPlay} Read along</button>${speedBtn()}`:''}<span class="small mut">Tap underlined words for a translation.</span></div><article class="txt">${md(R.text)}</article></div><div class="card"><h2>Questions</h2><p class="small mut">Answer from the text. You can scroll back up.</p><div id="run"></div></div>`;
     bindGloss(stage);bindSpeed(stage);const ra=$('#rau');if(ra)ra.onclick=()=>AUD?stopAudio():play(R.au,rate(),ra);
-    runItems($('#run'),R.qs.map((q,k)=>Object.assign({id:id+'.r.'+k},q)),{sk:'read',mod:id,onDone:s=>{sc('read',s);$('#run').innerHTML=`<p class="good-t">✓ ${s[0]}/${s[1]} correct.</p>`+(R.after?md(R.after):'');setAct('Next: Luisteren',()=>go(3),true)}})}
+    runItems($('#run'),R.qs.map((q,k)=>Object.assign({id:id+'.r.'+k},q)),{sk:'read',mod:id,onDone:s=>{sc('read',s);$('#run').innerHTML=`<p class="good-t">✓ ${s[0]}/${s[1]} correct.</p>`+(R.after?md(R.after):'');setAct(nxl,nxt,true)}})}
   else if(kind==='listen'){const L=M.listen;
     stage.innerHTML=`<div class="card"><p class="eyebrow">${esc(L.type||'Listening')}</p><h2>${esc(L.title)}</h2>${L.intro?`<p class="small">${esc(L.intro)}</p>`:''}<p class="small mut">Listen once without reading, then a second time if you need it. The transcript appears after the questions.</p><div class="row"><button class="btn ghost" type="button" id="lall">${icoPlay} Play</button>${speedBtn()}<span class="small mut" id="lcount"></span></div><div id="tr" hidden></div></div><div class="card"><h2>Questions</h2><div id="run"></div></div>`;
     bindSpeed(stage);let plays=0;const lb=$('#lall');
@@ -242,23 +252,38 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
     const qs=L.qs.map((q,k)=>Object.assign({id:id+'.l.'+k},q,{lau:(q.l||[]).map(n=>L.lines[n].au)}));
     runItems($('#run'),qs,{sk:'listen',mod:id,onDone:s=>{sc('listen',s);showTr();
       const D=(L.dict||[]).map((n,k)=>({t:'dict',id:id+'.d.'+k,au:[L.lines[n].au],a:[L.lines[n].t.replace(/\{([^{}|]+)\|[^{}]+\}/g,'$1')],kind:'Dictation · sentence '+(k+1)+' of '+L.dict.length,q:'Listen and write the sentence exactly. Replay as often as you need.'}));
-      if(!D.length){setAct('Next: Grammatica',()=>go(4),true);return}
+      if(!D.length){setAct(nxl,nxt,true);return}
       $('#run').innerHTML=`<p class="good-t">✓ ${s[0]}/${s[1]} correct. Now a short dictation (dictee): it trains your ear and your spelling at the same time.</p><div id="run2"></div>`;
-      runItems($('#run2'),D,{sk:'dict',mod:id,onDone:s2=>{sc('dict',s2);$('#run2').innerHTML=`<p class="good-t">✓ Dictation: ${Math.round(s2[0])}/${s2[1]}. Read the transcript above and replay any line you missed.</p>`;setAct('Next: Grammatica',()=>go(4),true)}})}})}
-  else if(kind==='gram'){const G=M.gram;
-    stage.innerHTML=`<div class="card gram"><p class="eyebrow">Grammar</p><h2>${esc(G.title)}</h2>${md(G.explain)}</div><div class="card"><h2>Practice</h2><p class="small mut">Wrong answers come back at the end of the round.</p><div id="run"></div></div>`;
-    runItems($('#run'),G.items.map((q,k)=>Object.assign({id:id+'.g.'+k},q)),{retry:true,sk:'gram',mod:id,onDone:s=>{sc('gram',s);$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time.</p>`;setAct('Next: Schrijven',()=>go(5),true)}})}
+      runItems($('#run2'),D,{sk:'dict',mod:id,onDone:s2=>{sc('dict',s2);$('#run2').innerHTML=`<p class="good-t">✓ Dictation: ${Math.round(s2[0])}/${s2[1]}. Read the transcript above and replay any line you missed.</p>`;setAct(nxl,nxt,true)}})}})}
+  else if(kind==='intro'){const G=M.gram;
+    stage.innerHTML=`<div class="card gram"><p class="eyebrow">New grammar · read this first</p><h2>${esc(G.title)}</h2>${md(G.explain)}</div>${G.check&&G.check.length?`<div class="card"><h2>Quick check</h2><p class="small mut">Just to see if the rule landed. More practice follows after the texts.</p><div id="run"></div></div>`:''}`;
+    if(G.check&&G.check.length)runItems($('#run'),G.check.map((q,k)=>Object.assign({id:id+'.c.'+k},q)),{retry:true,sk:'gram',mod:id,onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Got it. You\'ll meet this grammar in the texts now.</p>';setAct(nxl,nxt,true)}});else setAct(nxl,nxt,true)}
+  else if(kind==='gram'||kind==='prac'){const G=kind==='prac'?{title:M.title,items:M.practice}:M.gram;const again=M.flow===2||kind==='prac';
+    const rule=kind==='prac'?(M.chunks||[]).map(c=>`<h3>${esc(c.title)}</h3>${md(c.explain)}`).join(''):md(G.explain);
+    stage.innerHTML=again?`<div class="card"><p class="eyebrow">Grammar practice</p><h2>${esc(G.title)}</h2><details class="useful"><summary>The rule again</summary><div class="gram">${rule}</div></details><p class="small mut">From easy to harder. Wrong answers come back at the end of the round.</p><div id="run"></div></div>`
+      :`<div class="card gram"><p class="eyebrow">Grammar</p><h2>${esc(G.title)}</h2>${md(G.explain)}</div><div class="card"><h2>Practice</h2><p class="small mut">Wrong answers come back at the end of the round.</p><div id="run"></div></div>`;
+    runItems($('#run'),G.items.map((q,k)=>Object.assign({id:id+'.g.'+k},q)),{retry:true,sk:'gram',mod:id,onDone:s=>{sc('gram',s);$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time.</p>`;setAct(nxl,nxt,true)}})}
+  else if(kind==='disc'){const D=M.discover;
+    stage.innerHTML=`<div class="card"><h2>In this lesson</h2><ul class="goals">${(M.goals||[]).map(g=>'<li>'+esc(g)+'</li>').join('')}</ul><p class="small mut">A focused grammar lesson: discover → explanation in small steps → practice → learn the forms → use them. About 15 minutes.</p></div>
+      <div class="card read"><p class="eyebrow">Discover</p><h2>${esc(D.title)}</h2>${D.intro?`<p class="small mut">${esc(D.intro)}</p>`:''}<div class="row">${D.au?`<button class="btn sm ghost" type="button" id="rau">${icoPlay} Listen</button>${speedBtn()}`:''}</div><article class="txt">${md(D.text)}</article></div><div class="card"><h2>What do you notice?</h2><div id="run"></div></div>`;
+    bindGloss(stage);bindSpeed(stage);const ra=$('#rau');if(ra)ra.onclick=()=>AUD?stopAudio():play(D.au,rate(),ra);
+    runItems($('#run'),D.qs.map(q=>Object.assign({},q)),{onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Now the rule, step by step.</p>';setAct(nxl,nxt,true)}})}
+  else if(kind==='learn'){const CH=M.chunks;
+    stage.innerHTML=CH.map((c,k)=>`<div class="card gram" id="ch${k}" ${k?'hidden':''}><p class="eyebrow">Step ${k+1} of ${CH.length}</p><h2>${esc(c.title)}</h2>${md(c.explain)}<div class="chk" id="cr${k}"></div></div>`).join('');bindGloss(stage);
+    const runC=k=>{const box=$('#ch'+k);box.hidden=false;if(k)box.scrollIntoView({behavior:'smooth'});
+      runItems($('#cr'+k),CH[k].items.map((q,j)=>Object.assign({id:id+'.c'+k+'.'+j},q)),{retry:true,sk:'gram',mod:id,onDone:()=>{$('#cr'+k).innerHTML='<p class="good-t">✓ Step '+(k+1)+' done</p>';
+        if(k+1<CH.length)setAct('Next step',()=>{setAct(null);runC(k+1)},true);else setAct(nxl,nxt,true)}})};runC(0)}
   else if(kind==='write'){const Wr=M.write,prev=S.writing[id];
     stage.innerHTML=`<div class="card"><p class="eyebrow">Writing · ${esc(Wr.type||'')}</p><h2>${esc(Wr.title||'Schrijfopdracht')}</h2><div class="task">${md(Wr.task)}</div>${Wr.en?`<p class="small mut">${esc(Wr.en)}</p>`:''}
       ${Wr.useful?`<details class="useful"><summary>Useful phrases</summary><ul>${Wr.useful.map(u=>'<li>'+esc(u)+'</li>').join('')}</ul></details>`:''}
       <textarea id="wt" rows="9" lang="nl" spellcheck="false" placeholder="Schrijf hier…">${esc(prev?prev.text:'')}</textarea><p class="small mut"><span id="wc">0</span> words · aim for ${Wr.min}–${Wr.max}. Write first, look things up after.</p>
       <div id="chk" hidden><h3>Check your own text</h3><ul class="checks">${Wr.check.map((c,k)=>`<li><label><input type="checkbox" data-k="${k}"> ${md(c).replace(/^<p>|<\/p>$/g,'')}</label></li>`).join('')}</ul><p class="small mut">Fix what you can, then compare with a model answer.</p></div>
       <div id="mdl" hidden><h3>Model answer</h3><div class="model">${md(Wr.model)}</div><p class="small">Your text is saved and synced. When Claude builds a new module from your synced progress, that module opens with personal feedback on it. Want feedback right now? <button class="linkbtn" type="button" id="cp">Copy a feedback request</button> and paste it into Claude.</p></div></div>`;
-    const ta=$('#wt'),wc=()=>{const n=(ta.value.match(/\S+/g)||[]).length;$('#wc').textContent=n;return n};wc();
+    const ta=$('#wt'),wc=()=>{const n=(ta.value.match(/\S+/g)||[]).length;const el=$('#wc');if(el)el.textContent=n;return n};wc();
     const store=()=>{S.writing[id]={ts:Date.now(),task:Wr.task,text:ta.value,words:wc()};save()};
     let t;ta.addEventListener('input',()=>{wc();clearTimeout(t);t=setTimeout(store,800)});
     let phase=prev&&prev.text?1:0;const adv=()=>{if(phase===0){if(wc()<Math.min(10,Wr.min)){ta.focus();return}store();$('#chk').hidden=false;phase=1;setAct('Compare with a model',adv,true);$('#chk').scrollIntoView({behavior:'smooth'})}
-      else if(phase===1){store();$('#chk').hidden=false;$('#mdl').hidden=false;phase=2;setAct('Next: Spreken',()=>go(6),true);$('#mdl').scrollIntoView({behavior:'smooth'})}};
+      else if(phase===1){store();$('#chk').hidden=false;$('#mdl').hidden=false;phase=2;setAct(nxl,nxt,true);$('#mdl').scrollIntoView({behavior:'smooth'})}};
     if(phase===1){$('#chk').hidden=false;setAct('Compare with a model',adv,true)}else setAct('I\'m done writing',adv);
     stage.addEventListener('click',e=>{if(e.target.id!=='cp')return;const p=`Ik leer Nederlands (A2 → B1). Wil je mijn tekst corrigeren? Geef per fout: wat ik schreef, de verbeterde versie, en een korte uitleg in het Engels. Geef daarna een verbeterde versie van de hele tekst en een schatting van het niveau (A2/B1/B2).\n\nOpdracht: ${Wr.task}\n\nMijn tekst:\n${ta.value}`;
       (navigator.clipboard?navigator.clipboard.writeText(p):Promise.reject()).then(()=>{e.target.textContent='Copied ✓'}).catch(()=>{ta.select()})})}
@@ -274,13 +299,13 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
       try{stopAudio();const s=await navigator.mediaDevices.getUserMedia({audio:true});const ch=[];mr=new MediaRecorder(s);cur=k;mr.ondataavailable=e=>ch.push(e.data);
         mr.onstop=()=>{s.getTracks().forEach(t=>t.stop());recs[k]=URL.createObjectURL(new Blob(ch,{type:mr.mimeType||'audio/mp4'}));mr=null;cur=null;b.classList.remove('on');b.textContent='● Again';$(`[data-m="${k}"]`,stage).hidden=false;play(recs[k],1,$(`[data-m="${k}"]`,stage))};
         mr.start();b.classList.add('on');b.textContent='■ Stop';setTimeout(()=>{if(mr&&cur===k)mr.stop()},k==='task'?90000:12000)}catch(e){b.textContent='Microphone blocked: say it aloud 3×'}});
-    setAct('Finish module',()=>{st.sc.speak=[1,1];go(7)},true)}
+    setAct('Finish module',()=>{st.sc.speak=[1,1];go(STEPS.length-1)},true)}
   else{ticking=false;const sc2=st.sc||{};const rows=Object.entries(sc2).filter(([k,v])=>k!=='speak'&&v&&v[1]).map(([k,v])=>`<tr><td>${SKILL[k]}</td><td><div class="meter"><i style="width:${pct(v)}%"></i></div></td><td>${pct(v)}%</td></tr>`).join('');
-    const open=Object.values(S.errs).filter(e=>e.mod===id&&!e.res).length;const nx=C.find(c=>c.n===M.n+1);
-    stage.innerHTML=`<div class="card"><h2>Klaar! Module ${M.n} done 🎉</h2><p class="mut">${mins((st.ms||0)/1000)} minutes · score ${modScore(st)??'–'}%</p><table class="scores">${rows}</table>
+    const open=Object.values(S.errs).filter(e=>e.mod===id&&!e.res).length;const nx=C[C.findIndex(c=>c.id===id)+1];
+    stage.innerHTML=`<div class="card"><h2>Klaar! ${nameOf(CM)} done 🎉</h2><p class="mut">${mins((st.ms||0)/1000)} minutes · score ${modScore(st)??'–'}%</p><table class="scores">${rows}</table>
       <p>${open?`<b>${open} mistakes</b> from this module went into your error bank. They come back in the daily review and the next warm-up until you get them right twice.`:'No mistakes to bank. Sterk!'}</p>
       ${M.extra?`<h3>Extra input (optional)</h3>${md(M.extra)}`:''}
-      ${nx?`<p class="small mut">Next: module ${nx.n} · ${esc(nx.title)} (${fmt(planDate(nx.n))}). Between modules: 5–10 min daily review.</p>`:''}</div>`;
+      ${nx?`<p class="small mut">Next: ${nameOf(nx).toLowerCase()} · ${esc(nx.title)} (${fmt(planDate(nx.slot))}). In between: 5–10 min daily review.</p>`:''}</div>`;
     setAct('Back to overview',()=>{location.hash='#/'},true)}
 }
 function bindGloss(root){$$('.gl',root).forEach(b=>b.onclick=e=>{e.stopPropagation();$$('.gtip').forEach(t=>t.remove());const t=document.createElement('span');t.className='gtip';t.textContent=b.dataset.g;b.after(t);setTimeout(()=>document.addEventListener('click',()=>t.remove(),{once:true}),0)})}
@@ -301,20 +326,29 @@ function viewWords(){setNav('words');const W=Object.values(S.srs).sort((a,b)=>a.
   $('#q').oninput=e=>{const v=e.target.value.toLowerCase();$$('.bank li[data-s]').forEach(li=>li.hidden=!li.dataset.s.includes(v))};
   $$('[data-a]').forEach(b=>b.onclick=()=>play(W[+b.dataset.a].au,1,b))}
 
+/* ----- grammar reference: every explanation from the sessions you have started ----- */
+async function viewGrammar(){setNav('grammar');const L=C.filter(c=>READY.has(c.id)&&S.mods[c.id]);
+  view.innerHTML='<p class="mut" style="padding:40px 0">Loading…</p>';const Ms=await Promise.all(L.map(c=>loadModule(c.id).catch(()=>null)));
+  const title=M=>M.kind==='les'?M.title:M.gram.title,body=M=>M.kind==='les'?M.chunks.map(x=>`<h3>${esc(x.title)}</h3>${md(x.explain)}`).join(''):md(M.gram.explain);
+  const txt=M=>M.kind==='les'?M.chunks.map(x=>x.title+' '+x.explain).join(' '):M.gram.title+' '+M.gram.explain;
+  view.innerHTML=`<div class="card"><h1>Grammar</h1><p class="small mut">Every rule you have had so far, newest first. Tap a topic to open it.</p><input type="search" id="q" placeholder="Search (e.g. omdat, was, de/het)…">${L.length?'':'<p class="mut">Start a module and its grammar appears here.</p>'}</div>`+
+    L.map((c,k)=>Ms[k]?`<details class="card gref" data-s="${esc((c.title+' '+c.gram+' '+txt(Ms[k])).toLowerCase())}"><summary><span class="num">${lab(c)}</span> <b>${esc(title(Ms[k]))}</b><br><span class="small mut">${esc(nameOf(c))} · ${esc(c.title)}</span></summary><div class="gram">${body(Ms[k])}</div></details>`:'').reverse().join('');
+  bindGloss(view);$('#q').oninput=e=>{const v=e.target.value.toLowerCase();$$('.gref').forEach(d=>{d.hidden=!d.dataset.s.includes(v);if(v&&!d.hidden)d.open=true})}}
+
 /* ----- progress ----- */
-function viewProgress(){setNav('progress');const done=C.filter(c=>(S.mods[mid(c.n)]||{}).done);const W=Object.values(S.srs),E=Object.values(S.errs);
+function viewProgress(){setNav('progress');const done=C.filter(c=>(S.mods[c.id]||{}).done);const W=Object.values(S.srs),E=Object.values(S.errs);
   const tot=mins(Object.values(S.days).reduce((a,b)=>a+b,0));
-  const sk={};done.forEach(c=>{const m=S.mods[mid(c.n)];Object.entries(m.sc||{}).forEach(([k,v])=>{if(k==='speak'||!v||!v[1])return;(sk[k]=sk[k]||[]).push(v[0]/v[1])})});
+  const sk={};done.forEach(c=>{const m=S.mods[c.id];Object.entries(m.sc||{}).forEach(([k,v])=>{if(k==='speak'||!v||!v[1])return;(sk[k]=sk[k]||[]).push(v[0]/v[1])})});
   const avg=a=>Math.round(100*a.reduce((x,y)=>x+y,0)/a.length);
-  const ph=CO.phases.map(p=>{const ms=C.filter(c=>c.ph===p.id);return{p,dn:ms.filter(c=>(S.mods[mid(c.n)]||{}).done).length,n:ms.length}});
+  const ph=CO.phases.map(p=>{const ms=C.filter(c=>c.ph===p.id);return{p,dn:ms.filter(c=>(S.mods[c.id]||{}).done).length,n:ms.length}});
   const weeks=[];const d0=today(),dow=(new Date().getDay()+6)%7;for(let w=7;w>=0;w--){let s=0;for(let k=0;k<7;k++)s+=S.days[d0-dow-w*7+k]||0;weeks.push(mins(s))}const wmax=Math.max(40,...weeks);
   view.innerHTML=`<div class="card"><h1>Progress</h1>
-   <div class="path">${ph.map(x=>`<div><p class="small"><b>${esc(x.p.name)}</b> → ${esc(x.p.to)}</p><div class="meter"><i style="width:${Math.round(100*x.dn/x.n)}%"></i></div><p class="small mut">${x.dn}/${x.n} modules</p></div>`).join('')}</div>
-   <div class="stats"><div><b>${done.length}</b><span>modules</span></div><div><b>${tot}</b><span>minutes total</span></div><div><b>${W.filter(w=>w.b>=4).length}</b><span>strong words</span></div><div><b>${E.filter(e=>e.res).length}/${E.length}</b><span>mistakes fixed</span></div></div></div>
+   <div class="path">${ph.map(x=>`<div><p class="small"><b>${esc(x.p.name)}</b> → ${esc(x.p.to)}</p><div class="meter"><i style="width:${Math.round(100*x.dn/x.n)}%"></i></div><p class="small mut">${x.dn}/${x.n} sessions</p></div>`).join('')}</div>
+   <div class="stats"><div><b>${done.length}</b><span>sessions done</span></div><div><b>${tot}</b><span>minutes total</span></div><div><b>${W.filter(w=>w.b>=4).length}</b><span>strong words</span></div><div><b>${E.filter(e=>e.res).length}/${E.length}</b><span>mistakes fixed</span></div></div></div>
    <div class="card"><h2>Minutes per week</h2><div class="bars">${weeks.map((m,k)=>`<div title="${m} min"><i style="height:${Math.round(100*m/wmax)}%"></i><span>${k===7?'now':'-'+(7-k)}</span></div>`).join('')}</div><p class="small mut">Aim: 2 modules (40 min) + 5 days of review (35 min) ≈ 75 min a week.</p></div>
    <div class="card"><h2>Skills</h2>${Object.keys(sk).length?`<table class="scores">${Object.entries(SKILL).filter(([k])=>sk[k]).map(([k,l])=>`<tr><td>${l}</td><td><div class="meter"><i style="width:${avg(sk[k])}%"></i></div></td><td>${avg(sk[k])}%</td></tr>`).join('')}</table><p class="small mut">Average first-try score across finished modules.</p>`:'<p class="mut">Finish a module to see your skill profile.</p>'}</div>
    <div class="card"><h2>Open mistakes</h2>${E.filter(e=>!e.res).length?`<ul class="errs">${E.filter(e=>!e.res).sort((a,b)=>b.n-a.n).slice(0,15).map(e=>`<li><span class="small mut">${SKILL[e.sk]||''} · ${esc(e.mod)}${e.n>1?' · ×'+e.n:''}</span><br>${inline(String(e.it.q||'').replace(/\n+/g,' ').slice(0,120))} → <b>${esc((e.it.a&&(Array.isArray(e.it.a)?e.it.a[0]:typeof e.it.a==='number'&&e.it.o?e.it.o[e.it.a]:e.it.a===true?'waar':e.it.a===false?'niet waar':''))||'')}</b></li>`).join('')}</ul>`:'<p class="mut">None open. 👏</p>'}</div>
-   <div class="card"><h2>Modules</h2><table class="mt"><tr><th>#</th><th>Module</th><th>Min</th><th>Score</th></tr>${done.map(c=>{const m=S.mods[mid(c.n)];return`<tr><td>${c.n}</td><td><a href="#/m/${mid(c.n)}/7">${esc(c.title)}</a></td><td>${mins((m.ms||0)/1000)}</td><td>${modScore(m)??'–'}%</td></tr>`}).join('')||'<tr><td colspan="4" class="mut">None yet</td></tr>'}</table></div>
+   <div class="card"><h2>Modules</h2><table class="mt"><tr><th>#</th><th>Module</th><th>Min</th><th>Score</th></tr>${done.map(c=>{const m=S.mods[c.id];return`<tr><td>${lab(c)}</td><td><a href="#/m/${c.id}/end">${esc(c.title)}</a></td><td>${mins((m.ms||0)/1000)}</td><td>${modScore(m)??'–'}%</td></tr>`}).join('')||'<tr><td colspan="4" class="mut">None yet</td></tr>'}</table></div>
    <div class="card"><h2>My writing</h2>${Object.entries(S.writing).sort().map(([k,w])=>`<details><summary>${esc(k)} · ${w.words} words</summary><p class="small mut">${esc(w.task)}</p><p class="wtext">${esc(w.text)}</p></details>`).join('')||'<p class="mut">Nothing yet.</p>'}</div>
    <section class="card" id="sync"></section>
    <div class="card"><h2>Backup</h2><p class="small mut">Sync already keeps a copy online. This is an extra file backup.</p><div class="row"><button class="btn sm ghost" id="exp" type="button">Download backup</button><label class="btn sm ghost">Restore<input type="file" id="imp" accept=".json" hidden></label></div></div>`;

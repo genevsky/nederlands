@@ -1,6 +1,7 @@
-// Nederlands A2 → B2: the full course outline. One line per module, two modules a week (Monday + Thursday).
-// Each module is built later as content/mNN.json → modules/mNN.js (see tools/build.py and the nederlands-module skill).
-// Fields: n, title (Dutch theme), en (English gloss), lvl, gram (grammar focus), write (writing task type).
+// Nederlands A2 → B2: the full course outline. One line per session, two a week (Monday + Thursday), dated by position.
+// Modules (id mNN, standard format) and lessons (id lNN, les:K: focused grammar lessons for big topics) share the plan.
+// Each is built later as content/<id>.json → modules/<id>.js (see tools/build.py and the nederlands-module skill).
+// Fields: n (module number) or les (lesson number), title, en, lvl, gram (grammar focus), write (writing task type).
 window.COURSE={start:"2026-11-09",days:[1,4],phases:[
  {id:1,name:"Fase 1 · Stevig op A2+",goal:"Close the gaps that keep you at A2: word order, past tenses, sentence linking.",to:"B1 threshold"},
  {id:2,name:"Fase 2 · B1",goal:"Handle daily life, work and official matters independently; write clear emails and short opinion texts.",to:"B1 (Staatsexamen NT2 I)"},
@@ -11,13 +12,17 @@ window.CURRICULUM=[
  {n:3,ph:1,title:"Boodschappen en de markt",en:"Shopping",lvl:"A2+",gram:"Separable verbs (opbellen, meenemen)",write:"Short message"},
  {n:4,ph:1,title:"Op school: de ouderavond",en:"School and parents",lvl:"A2+",gram:"Subordinate clauses: omdat, dat, als (verb last)",write:"Email to a teacher"},
  {n:5,ph:1,title:"Vroeger",en:"Childhood memories",lvl:"A2+",gram:"Imperfectum: regular verbs ('t kofschip)",write:"Short story"},
- {n:6,ph:1,title:"Een reis met de trein",en:"Public transport",lvl:"A2+",gram:"Imperfectum: common irregular verbs",write:"Complaint to NS"},
- {n:7,ph:1,title:"Het huis",en:"Home and rooms",lvl:"A2+",gram:"Adjective endings (-e or not)",write:"Ad description"},
- {n:8,ph:1,title:"Sinterklaas",en:"Dutch traditions",lvl:"A2+",gram:"Comparative and superlative",write:"Invitation"},
+ {id:"l01",les:1,ph:1,title:"Onregelmatige werkwoorden 1",en:"Irregular past: the top 16",lvl:"A2+",gram:"Imperfectum: was, had, ging, kwam, zag, deed…",write:"Short sentences"},
+ {n:6,ph:1,title:"Een reis met de trein",en:"Public transport",lvl:"A2+",gram:"Irregular past in a story (after Les 1)",write:"Complaint to NS"},
+ {n:7,ph:1,title:"Sinterklaas",en:"Dutch traditions",lvl:"A2+",gram:"Comparative and superlative",write:"Invitation"},
+ {id:"l02",les:2,ph:1,title:"De of het?",en:"Articles",lvl:"A2+",gram:"de/het: rules of thumb, die/dat, deze/dit",write:"Short sentences"},
+ {n:8,ph:1,title:"Het huis",en:"Home and rooms",lvl:"A2+",gram:"Adjective endings (-e or not)",write:"Ad description"},
  {n:9,ph:1,title:"Bij de huisarts",en:"Health",lvl:"A2+",gram:"Relative clauses with die and dat",write:"Message to cancel an appointment"},
  {n:10,ph:1,title:"Feestdagen en plannen",en:"Holidays",lvl:"A2+",gram:"Modal verbs + infinitive at the end",write:"Informal email"},
+ {id:"l03",les:3,ph:1,title:"Onregelmatige werkwoorden 2",en:"Irregular past: the next 20",lvl:"B1-",gram:"Imperfectum: sliep, liep, las, gaf, vond, dacht, kocht…",write:"Short sentences"},
  {n:11,ph:1,title:"Goede voornemens",en:"New year's resolutions",lvl:"B1-",gram:"Reflexive verbs (zich voelen, zich aanmelden)",write:"Personal plan"},
  {n:12,ph:1,title:"Sport en bewegen",en:"Sport",lvl:"B1-",gram:"om … te + infinitive",write:"Registration email"},
+ {id:"l04",les:4,ph:1,title:"Er: vier betekenissen",en:"The word er",lvl:"B1-",gram:"er = there / there is / of them / er + preposition",write:"Short sentences"},
  {n:13,ph:1,title:"De buurt",en:"Neighbourhood",lvl:"B1-",gram:"Er (1): place and 'there is'",write:"Note to neighbours"},
  {n:14,ph:1,title:"Werk zoeken",en:"Jobs",lvl:"B1-",gram:"Er (2): with numbers and erop/ermee",write:"Short motivation"},
  {n:15,ph:1,title:"Het weer en de seizoenen",en:"Weather",lvl:"B1-",gram:"Waar + preposition (waarmee, waarover)",write:"Postcard"},
@@ -27,9 +32,12 @@ window.CURRICULUM=[
  {n:19,ph:1,title:"Familie en relaties",en:"Family",lvl:"B1-",gram:"Pronouns: hem/haar/ze, die/dat as reference",write:"Describe a person"},
  {n:20,ph:1,title:"Klachten en problemen",en:"Complaints",lvl:"B1-",gram:"niet vs geen, position of niet",write:"Formal complaint"},
  {n:21,ph:1,title:"Bij de gemeente",en:"The municipality",lvl:"B1-",gram:"Indirect questions (of, wat, waarom)",write:"Email to the gemeente"},
+ {id:"l05",les:5,ph:1,title:"Onregelmatige werkwoorden 3",en:"Irregular verbs: all forms",lvl:"B1-",gram:"Infinitive – past – participle, hebben or zijn",write:"Short sentences"},
  {n:22,ph:1,title:"Een verhaal vertellen",en:"Telling a story",lvl:"B1-",gram:"Plusquamperfectum (had gedaan)",write:"Short story"},
+ {id:"l06",les:6,ph:1,title:"Vaste voorzetsels",en:"Verbs with prepositions",lvl:"B1-",gram:"wachten op, denken aan, houden van…",write:"Short sentences"},
  {n:23,ph:1,title:"Vrije tijd en hobby's",en:"Hobbies",lvl:"B1-",gram:"Verbs with fixed prepositions (wachten op, denken aan)",write:"Forum post"},
  {n:24,ph:1,title:"Terugblik fase 1",en:"Review + check",lvl:"B1",gram:"Mixed review: word order and tenses",write:"Email (exam style)"},
+ {id:"l07",les:7,ph:2,title:"De passieve vorm",en:"The passive",lvl:"B1",gram:"worden + participle; door",write:"Short sentences"},
  {n:25,ph:2,title:"Duurzaam leven",en:"Sustainability",lvl:"B1",gram:"Passive: worden (present/past)",write:"Short opinion"},
  {n:26,ph:2,title:"Wonen en huren",en:"Renting",lvl:"B1",gram:"Passive: perfect (is gemaakt)",write:"Email to landlord"},
  {n:27,ph:2,title:"Op het werk",en:"Workplace",lvl:"B1",gram:"te + infinitive (proberen te, beginnen te)",write:"Work email"},
@@ -51,6 +59,7 @@ window.CURRICULUM=[
  {n:43,ph:2,title:"Tijd en afspraken",en:"Time",lvl:"B1",gram:"Prepositions of time (sinds, binnen, gedurende)",write:"Reschedule email"},
  {n:44,ph:2,title:"Formeel of informeel?",en:"Register",lvl:"B1",gram:"u vs je; formal email conventions",write:"Formal email"},
  {n:45,ph:2,title:"Voorwaarden",en:"Conditions",lvl:"B1",gram:"tenzij, mits, hoewel, ondanks",write:"Rules text"},
+ {id:"l08",les:8,ph:2,title:"Werkwoordsclusters",en:"Verb clusters",lvl:"B1+",gram:"Several verbs at the end: heeft kunnen komen",write:"Short sentences"},
  {n:46,ph:2,title:"Wat had je kunnen doen?",en:"Possibilities",lvl:"B1+",gram:"Verb clusters (heeft kunnen komen)",write:"Advice email"},
  {n:47,ph:2,title:"Cultuur en kunst",en:"Culture",lvl:"B1+",gram:"Participles as adjectives (de gesloten deur)",write:"Review"},
  {n:48,ph:2,title:"Proefexamen B1",en:"B1 mock exam",lvl:"B1",gram:"Mixed review",write:"Exam tasks"},

@@ -5,7 +5,7 @@ Usage: ~/.venvs/studie/bin/python -I tools/test_site.py [m01] [--url http://loca
 import json, sys, re
 from playwright.sync_api import sync_playwright
 
-mid = next((a for a in sys.argv[1:] if re.fullmatch(r"m\d\d", a)), "m01")
+mid = next((a for a in sys.argv[1:] if re.fullmatch(r"[ml]\d\d", a)), "m01")
 url = sys.argv[sys.argv.index("--url") + 1] if "--url" in sys.argv else "http://localhost:8765"
 WRONG_EVERY = 4  # answer every 4th question wrong
 
@@ -38,7 +38,7 @@ def run_items(page, budget=80):
     n = 0
     while n < budget:
         page.wait_for_timeout(60)
-        if not page.locator("#run .item, #run2 .item").count():
+        if not page.locator("#run .item, #run2 .item, .chk .item").count():
             return n
         answer(page, n); n += 1
     raise RuntimeError("item loop did not end")
@@ -58,20 +58,22 @@ def main():
             page.on("pageerror", lambda e: errors.append(f"{name}: {e}"))
             page.on("console", lambda m: m.type == "error" and errors.append(f"{name} console: {m.text}"))
             page.goto(url + "/#/m/" + mid); page.wait_for_selector("ol.steps")
-            # warm-up: feedback card + personal items (if any) -> words
             if page.locator(".fbcard").count(): print(name, "feedback items", page.locator(".fbcard .corr").count())
-            n = run_items(page); print(name, "warm-up items", n)
-            act(page, "Woorden"); page.wait_for_selector(".wl")
-            act(page, "recall"); n = run_items(page); print(name, "words items", n)
-            act(page, "Lezen"); n = run_items(page); print(name, "read items", n)
-            assert page.locator(".gl").count() > 3
-            act(page, "Luisteren"); n = run_items(page); print(name, "listen+dict items", n)
-            assert not page.locator("#tr").is_hidden()
-            act(page, "Grammatica"); n = run_items(page); print(name, "grammar items", n)
-            act(page, "Schrijven"); page.fill("#wt", "Hoi Bram, donderdag kan ik helaas niet naar de vergadering want ik heb een afspraak. Kunnen we de vergadering verzetten naar dinsdag? Om tien uur heb ik tijd. Groetjes")
-            act(page, "done writing"); act(page, "model"); assert page.locator("#mdl").is_visible()
-            act(page, "Spreken"); page.wait_for_selector(".shl")
-            act(page, "Finish"); page.wait_for_selector("table.scores")
+            # walk every step, whatever the order (flow 1, flow 2 or a lesson): answer items, then press the action button
+            steps = page.locator("ol.steps li").count(); print(name, "steps", steps)
+            total = 0
+            for guard in range(80):
+                total += run_items(page)
+                if page.locator("table.scores").count():
+                    break
+                label = page.locator("#act button").inner_text(); cur = page.locator("ol.steps li.cur").inner_text() if page.locator("ol.steps li.cur").count() else "?"
+                if "--debug" in sys.argv: print("   step", repr(cur), "label", repr(label))
+                if page.locator("#wt").count() and "done writing" in label:
+                    page.fill("#wt", "Vorige zaterdag was ik vroeg wakker. Ik ging met de trein naar Utrecht, maar de trein had vertraging. Ik moest lang wachten en ik kwam te laat. Daarna werkte ik thuis.")
+                act(page)
+            else:
+                raise RuntimeError("module did not reach the end")
+            print(name, "items answered", total)
             st = page.evaluate("JSON.parse(localStorage.getItem('nl:state'))")
             m = st["mods"][mid]
             print(name, "scores", m["sc"], "done", bool(m.get("done")))
@@ -88,6 +90,8 @@ def main():
             page.goto(url + "/#/progress"); page.wait_for_selector(".bars")
             ov = page.evaluate("document.documentElement.scrollWidth - innerWidth"); assert ov <= 0, f"{name}: progress overflow {ov}px"
             page.goto(url + "/#/words"); page.wait_for_selector("ul.bank li")
+            page.goto(url + "/#/grammar"); page.wait_for_selector("details.gref")
+            ov = page.evaluate("document.documentElement.scrollWidth - innerWidth"); assert ov <= 0, f"{name}: grammar overflow {ov}px"
             page.goto(url + "/#/"); page.wait_for_selector(".card.rev")
             ctx.close()
         br.close()

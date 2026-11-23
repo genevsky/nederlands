@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build Nederlands modules: content/mNN.json -> modules/mNN.js + audio/mNN/*.m4a, and modules/ready.js.
+"""Build Nederlands sessions: content/<id>.json -> modules/<id>.js + audio/<id>/*.m4a, and modules/ready.js.
+Sessions are modules (mNN, standard format) and lessons (lNN, "kind":"les", focused grammar lessons).
 
-Usage:  python3 -I tools/build.py            (all modules in content/)
-        python3 -I tools/build.py m05        (one module; ready.js is still rebuilt from all)
+Usage:  python3 -I tools/build.py            (everything in content/)
+        python3 -I tools/build.py m05 l01    (some sessions; ready.js is still rebuilt from all)
         python3 -I tools/build.py --check    (validate only, no audio)
 
 Audio uses macOS `say` (Dutch voices: Claire (Enhanced) nl_NL as narrator, Xander nl_NL) + `afconvert` to AAC .m4a.
@@ -16,6 +17,71 @@ CACHE_F = os.path.join(ROOT, "tools", "audio_cache.json")
 VOICES = ["Claire (Enhanced)", "Xander (Enhanced)"]   # narrator/speaker 1, speaker 2 (more speakers alternate)
 RATE = 165                           # words per minute; modules can override with "rate"
 GLOSS = re.compile(r"\{([^{}|]+)\|[^{}]+\}")
+
+# ---- teach before test -------------------------------------------------------------------------------------------
+# Forms that may only be asked for (in answers the learner has to produce) once the lesson that teaches them came
+# earlier in the plan, or in that session itself after its explanation. Reading/listening texts may contain them
+# (that is input, not a test). "reden" (also a noun) and "vroeg" (also 'early') are left out on purpose.
+GATES = {
+    "irr1": ("l01", "was waren had hadden ging gingen kwam kwamen zag zagen deed deden nam namen stond stonden zat zaten "
+                    "reed kon konden moest moesten wist wisten zei zeiden kreeg kregen bleef bleven"),
+    "irr2": ("l03", "sliep sliepen liep liepen zwom zwommen las lazen gaf gaven vond vonden begon begonnen dronk dronken "
+                    "at aten koos kozen lag lagen sprak spraken schreef schreven dacht dachten bracht brachten kocht kochten "
+                    "zocht zochten viel vielen hield hielden hielp hielpen vergat vergaten verloor verloren trok trokken "
+                    "vertrok vertrokken bezocht bezochten riep riepen mocht mochten"),
+}
+GATE_FORMS = {tag: set(forms.split()) for tag, (_, forms) in GATES.items()}
+
+
+def plan_order():
+    """Session ids in plan order, read from curriculum.js."""
+    src = open(os.path.join(ROOT, "curriculum.js"), encoding="utf-8").read()
+    return [lid or "m%02d" % int(n) for lid, n in re.findall(r'^ \{(?:id:"(l\d\d)",[^\n]*|n:(\d+),[^\n]*)$', src, re.M)]
+
+
+def produced(items):
+    """Answer strings the learner has to produce or pick in these items."""
+    out = []
+    for it in items or []:
+        t = it.get("t")
+        if t in ("type", "order"):
+            out += it["a"]
+        elif t == "mc":
+            out.append(it["o"][it["a"]])
+    return out
+
+
+def gate_check(m, mid):
+    order = plan_order()
+    need(mid in order, f"{mid} is not in curriculum.js")
+    me = order.index(mid)
+    first = min(order.index(t) for t, _ in GATES.values())
+    if me < first:
+        return  # sessions built before the rule existed
+    before = {tag for tag, (teacher, _) in GATES.items() if order.index(teacher) < me}
+    self_ = before | {tag for tag, (teacher, _) in GATES.items() if teacher == mid}
+
+    def check(texts, allowed, where):
+        bad = set()
+        for txt in texts:
+            for w in re.findall(r"[a-zà-ÿ]+", plain(txt).lower()):
+                for tag, forms in GATE_FORMS.items():
+                    if tag not in allowed and w in forms:
+                        bad.add(f"{w} ({tag}, taught in {GATES[tag][0]})")
+        need(not bad, f"{where}: asks for forms not taught yet: {', '.join(sorted(bad))}")
+
+    check(produced(m.get("personal")), before, "personal (warm-up, before any explanation)")
+    if m.get("kind") == "les":
+        check(produced(m["discover"]["qs"]), self_, "discover.qs")
+        for k, c in enumerate(m["chunks"]):
+            check(produced(c["items"]), self_, f"chunks[{k}]")
+        check(produced(m["practice"]), self_, "practice")
+        check([w["nl"] for w in m["words"]] + [w.get("cz", "") for w in m["words"]], self_, "words")
+    else:
+        need(m.get("flow") == 2, "modules from now on need \"flow\": 2 (grammar explained before it is practised)")
+        need(2 <= len(m["gram"].get("check", [])) <= 4, "gram.check: 2–4 easy items after the explanation")
+        check(produced(m["gram"]["check"]) + produced(m["gram"]["items"]), self_, "gram")
+        check([w["nl"] for w in m["words"]] + [w.get("cz", "") for w in m["words"]], self_, "words")
 
 
 def plain(s):
@@ -55,8 +121,34 @@ def check_items(items, where, kinds=("mc", "tf", "type", "order")):
             need(len(base) >= 3, f"{w}: order item too short")
 
 
+def validate_les(m, mid):
+    for k in ("les", "title", "lvl", "goals", "discover", "chunks", "practice", "words", "write"):
+        need(k in m, f"missing {k}")
+    D = m["discover"]
+    need(D.get("title") and D.get("text") and D.get("qs"), "discover: needs title, text, qs")
+    check_items(D["qs"], "discover.qs")
+    need(len(m["chunks"]) >= 2, "chunks: at least 2 small steps")
+    for k, c in enumerate(m["chunks"]):
+        need(c.get("title") and c.get("explain") and len(c.get("items", [])) >= 2, f"chunks[{k}]: needs title, explain, 2+ items")
+        check_items(c["items"], f"chunks[{k}].items")
+    need(len(m["practice"]) >= 8, "practice: 8+ items, easy to hard")
+    check_items(m["practice"], "practice")
+    W = m["words"]
+    need(6 <= len(W) <= 24, "words (forms to learn): use 6–24")
+    for i, w in enumerate(W):
+        need(all(w.get(k) for k in ("nl", "en", "ex")), f"words[{i}]: needs nl, en, ex")
+        if w.get("cz"):
+            need(w["cz"] in w["ex"], f"words[{i}]: cz {w['cz']!r} not in example")
+    Wr = m["write"]
+    need(all(Wr.get(k) for k in ("task", "min", "max", "check", "model")), "write: needs task, min, max, check, model")
+
+
 def validate(m, mid):
     need(m.get("id") == mid, f"id must be {mid}")
+    if m.get("kind") == "les":
+        validate_les(m, mid)
+        gate_check(m, mid)
+        return
     for k in ("n", "title", "lvl", "goals", "words", "read", "listen", "gram", "write", "speak"):
         need(k in m, f"missing {k}")
     W = m["words"]
@@ -87,6 +179,9 @@ def validate(m, mid):
     need(Sp.get("lines"), "speak: needs lines")
     for i, l in enumerate(Sp["lines"]):
         need(("l" in l and 0 <= l["l"] < n) or l.get("t"), f"speak.lines[{i}]: needs t or valid l")
+    if m.get("flow") == 2:
+        check_items(m["gram"].get("check", []), "gram.check")
+    gate_check(m, mid)
 
 
 def say(text, voice, rate, out, cache, force=False):
@@ -112,7 +207,12 @@ def build(mid, cache, audio=True):
     jobs = []  # (text, voice, rate, relpath)
     for k, w in enumerate(m["words"]):
         w["au"], w["aux"] = A(f"w{k}"), A(f"x{k}")
-        jobs += [(w["nl"], VOICES[0], rate - 15, w["au"]), (plain(w["ex"]), VOICES[0], rate, w["aux"])]
+        jobs += [(w.get("say") or w["nl"], VOICES[0], rate - 15, w["au"]), (plain(w["ex"]), VOICES[0], rate, w["aux"])]
+    if m.get("kind") == "les":
+        D = m["discover"]
+        D["au"] = A("disc")
+        jobs.append((" \n".join(plain(p) for p in D["text"].split("\n\n")), VOICES[0], rate - 10, D["au"]))
+        return finish(m, mid, jobs, cache, audio)
     R = m["read"]
     R["au"] = A("read")
     jobs.append((" \n".join(plain(p) for p in R["text"].split("\n\n")), VOICES[0], rate, R["au"]))
@@ -134,6 +234,10 @@ def build(mid, cache, audio=True):
         else:
             l["au"] = A(f"s{k}")
             jobs.append((plain(l["t"]), VOICES[0], rate - 10, l["au"]))
+    return finish(m, mid, jobs, cache, audio)
+
+
+def finish(m, mid, jobs, cache, audio):
     made = 0
     if audio:
         for text, voice, r, rel in jobs:
@@ -157,9 +261,9 @@ def dict_pool(ready):
         js = open(os.path.join(MODS, mid + ".js"), encoding="utf-8").read()
         m = json.loads(js[js.index("]=") + 2:].rstrip().rstrip(";"))
         seen, out = set(), []
-        cands = [(l["t"], l.get("au")) for l in m["listen"]["lines"]]
+        cands = [(l["t"], l.get("au")) for l in m.get("listen", {}).get("lines", [])]
         cands += [(w["ex"], w.get("aux")) for w in m["words"]]
-        cands += [(l["t"], l.get("au")) for l in m["speak"]["lines"]]
+        cands += [(l["t"], l.get("au")) for l in m.get("speak", {}).get("lines", [])]
         for t, au in cands:
             t = plain(t)
             if au and 4 <= len(t.split()) <= 14 and t not in seen:
@@ -172,7 +276,7 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     audio = "--check" not in sys.argv
     cache = json.load(open(CACHE_F)) if os.path.exists(CACHE_F) else {}
-    allm = sorted(f[:-5] for f in os.listdir(CONTENT) if re.fullmatch(r"m\d\d\.json", f))
+    allm = sorted(f[:-5] for f in os.listdir(CONTENT) if re.fullmatch(r"[ml]\d\d\.json", f))
     bad = 0
     for mid in (args or allm):
         try:
@@ -182,7 +286,7 @@ def main():
             bad += 1
     if audio:
         json.dump(cache, open(CACHE_F, "w"), indent=0, sort_keys=True)
-    ready = sorted(f[:-3] for f in os.listdir(MODS) if re.fullmatch(r"m\d\d\.js", f))
+    ready = sorted(f[:-3] for f in os.listdir(MODS) if re.fullmatch(r"[ml]\d\d\.js", f))
     with open(os.path.join(MODS, "ready.js"), "w", encoding="utf-8") as f:
         f.write("window.NL_READY=%s;\n" % json.dumps(ready))
         f.write("/* dictation pool: sentences with audio, used to vary dictation mistakes in the review */\n")
