@@ -62,6 +62,29 @@ def prompt_check(m, where):
             need(not re.search(r"(^|[^a-zà-ÿ])" + re.escape(form) + r"($|[^a-zà-ÿ])", en), f"{where} {w['nl']!r}: the prompt 'en' contains the answer {form!r}")
 
 
+def tense_check(m, where):
+    """A gap with a verb hint like '(hebben)' must say which tense it wants when the answer isn't the present:
+    '(hebben, past)' or '(betalen, participle)'. Alex asked for this explicitly (2026-11-25)."""
+    items = []
+    if m.get("kind") == "les":
+        for c in m["chunks"]:
+            items += c["items"]
+        items += m["practice"]
+    else:
+        items += m["gram"]["items"] + m["gram"].get("check", []) + m.get("personal", [])
+    past = set().union(*GATE_FORMS.values())
+    for it in items:
+        q = it.get("q", "")
+        h = re.search(r"\(([a-z]+en)\b[^)]*\)", q)
+        if not h or re.search(r"past|particip|perfect|tense|verleden", q, re.I):
+            continue
+        answers = it["a"] if isinstance(it["a"], list) else [it["o"][it["a"]]] if it.get("t") == "mc" else []
+        for ans in answers:
+            w = ans.lower().strip(" .")
+            if w in past or (len(w) > 4 and re.fullmatch(r"[a-zà-ÿ]+(te|de|ten|den)", w) and w[:-2] != h.group(1)[:-2]) or re.fullmatch(r"ge[a-zà-ÿ]+[dt]|[a-zà-ÿ]+ge[a-zà-ÿ]+[dt]", w):
+                raise Bad(f"{where}: {q[-50:]!r} asks for {ans!r} but the hint doesn't say the tense; write '({h.group(1)}, past)' or '({h.group(1)}, participle)'")
+
+
 def gate_check(m, mid):
     order = plan_order()
     need(mid in order, f"{mid} is not in curriculum.js")
@@ -70,6 +93,7 @@ def gate_check(m, mid):
     if me < first:
         return  # sessions built before the rule existed
     prompt_check(m, mid)
+    tense_check(m, mid)
     before = {tag for tag, (teacher, _) in GATES.items() if order.index(teacher) < me}
     self_ = before | {tag for tag, (teacher, _) in GATES.items() if teacher == mid}
 
@@ -306,6 +330,26 @@ def dict_pool(ready):
     return pool
 
 
+def item_index(ready):
+    """id -> current item fields, using the same ids the app gives exercises (so the error bank can refresh old wording)."""
+    keep = ("t", "q", "o", "a", "x", "hint", "keep", "keepCap", "art")
+    idx = {}
+    for mid in ready:
+        js = open(os.path.join(MODS, mid + ".js"), encoding="utf-8").read()
+        m = json.loads(js[js.index("]=") + 2:].rstrip().rstrip(";"))
+        groups = []
+        if m.get("kind") == "les":
+            groups += [(f"{mid}.c{k}.", c["items"]) for k, c in enumerate(m["chunks"])]
+            groups.append((f"{mid}.g.", m["practice"]))
+        else:
+            groups += [(f"{mid}.g.", m["gram"]["items"]), (f"{mid}.c.", m["gram"].get("check", [])),
+                       (f"{mid}.p.", m.get("personal", [])), (f"{mid}.r.", m["read"]["qs"]), (f"{mid}.l.", m["listen"]["qs"])]
+        for pre, items in groups:
+            for k, it in enumerate(items):
+                idx[pre + str(k)] = {f: it[f] for f in keep if f in it}
+    return idx
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     audio = "--check" not in sys.argv
@@ -325,6 +369,8 @@ def main():
         f.write("window.NL_READY=%s;\n" % json.dumps(ready))
         f.write("/* dictation pool: sentences with audio, used to vary dictation mistakes in the review */\n")
         f.write("window.NL_POOL=%s;\n" % json.dumps(dict_pool(ready), ensure_ascii=False, separators=(",", ":")))
+        f.write("/* current text of every exercise by id: mistakes already in the review show the latest wording */\n")
+        f.write("window.NL_Q=%s;\n" % json.dumps(item_index(ready), ensure_ascii=False, separators=(",", ":")))
     sys.exit(1 if bad else 0)
 
 

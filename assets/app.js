@@ -144,7 +144,7 @@ const xOf=w=>(w.ex||'')+(w.say&&w.say!==w.nl?'\n\n**'+w.say.replace(/, /g,' – 
 function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,say:w.say,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
 
 /* review deck: open errors due + words due */
-function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}),e))}
+function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,(window.NL_Q||{})[k]||{},{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}),e))}
 /* a dictation mistake comes back as a different sentence from the same module (preferring ones that share words with
    the original), so you practise the sounds and spellings, not one memorised sentence; it never repeats the last one served */
 function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]];if(it.t!=='dict'||!P||!P.length)return it;

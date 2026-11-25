@@ -87,7 +87,7 @@
   },
   {
    "t": "type",
-   "q": "**Ik ben moe, want ik heb niet _____.** (uitslapen)",
+   "q": "**Ik ben moe, want ik heb niet _____.** (uitslapen, participle)",
    "a": [
     "uitgeslapen"
    ],
@@ -420,14 +420,14 @@
   "items": [
    {
     "t": "type",
-    "q": "**Gisteren _____ ik met de trein naar Utrecht.** (gaan)",
+    "q": "**Gisteren _____ ik met de trein naar Utrecht.** (gaan, past)",
     "a": [
      "ging"
     ]
    },
    {
     "t": "type",
-    "q": "**We _____ twintig minuten stil.** (staan)",
+    "q": "**We _____ twintig minuten stil.** (staan, past)",
     "a": [
      "stonden"
     ],
@@ -435,7 +435,7 @@
    },
    {
     "t": "mc",
-    "q": "Toen _____ we heel langzaam naar Amersfoort. (rijden)",
+    "q": "Toen _____ we heel langzaam naar Amersfoort. (rijden, past)",
     "o": [
      "reden",
      "reedden",
@@ -447,14 +447,14 @@
    },
    {
     "t": "type",
-    "q": "**Ik _____ het pas toen ik in de trein zat.** (zien)",
+    "q": "**Ik _____ het pas toen ik in de trein zat.** (zien, past)",
     "a": [
      "zag"
     ]
    },
    {
     "t": "type",
-    "q": "**Veel reizigers _____ de bus.** (nemen)",
+    "q": "**Veel reizigers _____ de bus.** (nemen, past)",
     "a": [
      "namen"
     ],
@@ -462,7 +462,7 @@
    },
    {
     "t": "mc",
-    "q": "Wat _____ de conducteur? (zeggen)",
+    "q": "Wat _____ de conducteur? (zeggen, past)",
     "o": [
      "zei",
      "zegde",
@@ -474,7 +474,7 @@
    },
    {
     "t": "type",
-    "q": "**Wij _____ pas om elf uur aan.** (aankomen)",
+    "q": "**Wij _____ pas om elf uur aan.** (aankomen, past)",
     "a": [
      "kwamen"
     ],
@@ -516,7 +516,7 @@
    },
    {
     "t": "type",
-    "q": "Regular or not? **Lisa _____ de rest van de dag thuis.** (werken)",
+    "q": "Regular or not? **Lisa _____ de rest van de dag thuis.** (werken, past)",
     "a": [
      "werkte"
     ],
@@ -526,7 +526,7 @@
   "check": [
    {
     "t": "mc",
-    "q": "Gisteren _____ ik met de trein naar Utrecht. (gaan)",
+    "q": "Gisteren _____ ik met de trein naar Utrecht. (gaan, past)",
     "o": [
      "ging",
      "gaade"
@@ -536,7 +536,7 @@
    },
    {
     "t": "mc",
-    "q": "We _____ pas om elf uur aan. (aankomen)",
+    "q": "We _____ pas om elf uur aan. (aankomen, past)",
     "o": [
      "kwamen",
      "aankwamen"
@@ -547,7 +547,7 @@
    },
    {
     "t": "mc",
-    "q": "In Utrecht _____ ik over. (overstappen)",
+    "q": "In Utrecht _____ ik over. (overstappen, past)",
     "o": [
      "stapte",
      "stap"
