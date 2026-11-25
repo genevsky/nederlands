@@ -155,6 +155,9 @@ function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]]
 /* a preposition card blanks the whole word only (not 'op' inside 'opgeven') */
 const gapWord=(ex,cz)=>ex.replace(new RegExp('(^|[^A-Za-zÀ-ÿ])'+cz.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![A-Za-zÀ-ÿ])'),'$1_____');
 function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes(w.cz)?w.cz:null;
+  /* past-tense cards (Les 1, 3…): every other review asks for the plural instead of the singular */
+  const F=(w.say||'').split(', ');if(/^past of /.test(w.en||'')&&F.length===3&&(w.n||0)%2===1)
+    return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Past tense · plural',q:'Past of **'+F[0]+'**, plural: **wij / jullie / zij** _____\n\n*'+w.en.replace(/^past of \S+\s*/,'')+'*',a:[F[2]],x:xOf(w)};
   if(w.kind==='prep'&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Preposition · '+(b<=1?'new':'box '+b),q:'**'+gapWord(ex,cz)+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
   if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
   if(b>=5&&w.au)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · listen and write',q:'Write the word you hear (with article if it has one).',au:[w.au],a:[w.nl],art:true};
