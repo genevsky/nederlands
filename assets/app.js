@@ -38,6 +38,8 @@ function md(s){if(!s)return '';const out=[];String(s).split(/\n{2,}/).forEach(b=
 const KEY='nl:state';
 const load=()=>{let s;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}return Object.assign({v:1,mods:{},srs:{},errs:{},writing:{},days:{}},s||{})};
 let S=load();
+/* cards from Les 1 had the plural in the prompt, which gives the answer away: move the forms to 'say' (shown after answering) */
+Object.values(S.srs).forEach(w=>{const m=/^(.*?)\s*·\s*plural:\s*(.+)$/.exec(w.en||'');if(!m)return;const v=/past of (\S+)/.exec(m[1]);w.en=m[1];if(!w.say&&v)w.say=v[1]+', '+w.nl+', '+m[2]});
 function save(){S.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(window.NLSync)NLSync.changed()}
 window.__nlReload=()=>{S=load();if(!busyItem)route()};
 let busyItem=false;
@@ -138,7 +140,8 @@ function logResult(it,ok,opts){if(!it.id)return;const d=today();
   if(it.word){const w=S.srs[it.word.nl];if(w){w.ts=Date.now();if(!ok){w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
   save()}
 const IV=[0,1,3,7,14,30,60,120];
-function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
+const xOf=w=>(w.ex||'')+(w.say&&w.say!==w.nl?'\n\n**'+w.say.replace(/, /g,' – ')+'**':'');
+function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,say:w.say,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
 
 /* review deck: open errors due + words due */
 function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}),e))}
@@ -152,10 +155,10 @@ function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]]
 /* a preposition card blanks the whole word only (not 'op' inside 'opgeven') */
 const gapWord=(ex,cz)=>ex.replace(new RegExp('(^|[^A-Za-zÀ-ÿ])'+cz.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![A-Za-zÀ-ÿ])'),'$1_____');
 function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes(w.cz)?w.cz:null;
-  if(w.kind==='prep'&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Preposition · '+(b<=1?'new':'box '+b),q:'**'+gapWord(ex,cz)+'**\n\n*('+w.en+')*',a:[cz],x:ex};
-  if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:ex};
+  if(w.kind==='prep'&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Preposition · '+(b<=1?'new':'box '+b),q:'**'+gapWord(ex,cz)+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
+  if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
   if(b>=5&&w.au)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · listen and write',q:'Write the word you hear (with article if it has one).',au:[w.au],a:[w.nl],art:true};
-  return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · '+(b<=1?'new':'box '+b),q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:ex}}
+  return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · '+(b<=1?'new':'box '+b),q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:xOf(w)}}
 function dueWords(){const d=today();return Object.values(S.srs).filter(w=>w.due<=d).sort((a,b)=>a.due-b.due||a.b-b.b).map(wordItem)}
 function reviewHook(it,ok){const d=today();
   if(it._word){const w=S.srs[it._word];if(w){w.ts=Date.now();w.n=(w.n||0)+1;if(ok){w.b=Math.min(7,(w.b||1)+1);w.due=d+IV[w.b]}else{w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
@@ -245,13 +248,13 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
       runItems($('#run'),warm,{retry:true,review:reviewHook,onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Warm-up done</p>';setAct(nxl,nxt,true)}})}
     else{stage.innerHTML=h;bindFb();setAct('Start: '+STEPS[1][1],nxt,true)}}
   else if(kind==='words'){const W=M.words,P=(M.preps||[]).map(x=>Object.assign({kind:'prep'},x));
-    stage.innerHTML=`<div class="card"><h2>${M.kind==='les'?'The forms to remember':'New words'}</h2><p class="small mut">${M.kind==='les'?'Listen, say each form out loud with its example. Then recall them from memory: they also go into your daily review, so they come back until you know them.':'Listen, say each word out loud, and read the example. Then you\'ll recall them from memory.'}</p>${speedBtn()}<div class="wl">${W.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p><p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div>${P.length?`<h3 class="vc">Vaste combinaties</h3><p class="small mut">Verbs and adjectives that always take the same preposition. Learn them as one block: you'll be asked for the preposition.</p><div class="wl">${P.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-q="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p><p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div>`:''}</div><div class="card" id="runc" hidden><h2>Recall</h2><div id="run"></div></div>`;
+    stage.innerHTML=`<div class="card"><h2>${M.kind==='les'?'The forms to remember':'New words'}</h2><p class="small mut">${M.kind==='les'?'Listen, say each form out loud with its example. Then recall them from memory: they also go into your daily review, so they come back until you know them.':'Listen, say each word out loud, and read the example. Then you\'ll recall them from memory.'}</p>${speedBtn()}<div class="wl">${W.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p>${w.say&&w.say!==w.nl?`<p class="small"><b>${esc(w.say.replace(/, /g,' – '))}</b></p>`:''}<p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div>${P.length?`<h3 class="vc">Vaste combinaties</h3><p class="small mut">Verbs and adjectives that always take the same preposition. Learn them as one block: you'll be asked for the preposition.</p><div class="wl">${P.map((w,k)=>`<div class="w"><button class="pbtn" type="button" data-q="${k}" aria-label="Listen">${icoPlay}</button><div><p><b>${esc(w.nl)}</b> <span class="mut">· ${esc(w.en)}</span></p>${w.say&&w.say!==w.nl?`<p class="small"><b>${esc(w.say.replace(/, /g,' – '))}</b></p>`:''}<p class="ex">${esc(w.ex)}</p></div></div>`).join('')}</div>`:''}</div><div class="card" id="runc" hidden><h2>Recall</h2><div id="run"></div></div>`;
     bindSpeed(stage);$$('[data-a]',stage).forEach(b=>b.onclick=async()=>{const w=W[+b.dataset.a];await play(w.au,rate(),b);if(w.aux)await play(w.aux,rate(),b)});
     $$('[data-q]',stage).forEach(b=>b.onclick=async()=>{const w=P[+b.dataset.q];await play(w.au,rate(),b);if(w.aux)await play(w.aux,rate(),b)});
     setAct('I\'ve studied these → recall',()=>{$('#runc').hidden=false;$('.wl',stage).closest('.card').classList.add('fold');$('#runc').scrollIntoView({behavior:'smooth'});
       const items=shuffle(W.map((w,k)=>{const cz=w.cz&&w.ex.includes(w.cz)?w.cz:null;
-        return k%2&&cz?{t:'type',id:id+'.w.'+k,word:w,q:'**'+w.ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:w.ex,kind:'Fill the gap'}
-                     :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:w.ex,kind:'Recall'}}).concat(
+        return k%2&&cz?{t:'type',id:id+'.w.'+k,word:w,q:'**'+w.ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w),kind:'Fill the gap'}
+                     :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:xOf(w),kind:'Recall'}}).concat(
         P.map((w,k)=>({t:'type',id:id+'.pr.'+k,word:w,q:'**'+gapWord(w.ex,w.cz)+'**\n\n*('+w.en+')*',a:[w.cz],x:w.ex,kind:'Preposition'}))));
       runItems($('#run'),items,{retry:true,sk:'words',mod:id,onDone:s=>{sc('words',s);addWords(id,W.concat(P));$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time. These words are now in your daily review.</p>`;setAct(nxl,nxt,true)}})})}
   else if(kind==='read'){const R=M.read;
@@ -344,7 +347,7 @@ function viewReview(){setNav('review');ticking=true;
 /* ----- word bank ----- */
 function viewWords(){setNav('words');const W=Object.values(S.srs).sort((a,b)=>a.nl.replace(ART,'').localeCompare(b.nl.replace(ART,'')));
   const lbl=b=>b>=6?'known':b>=4?'strong':b>=2?'learning':'new';
-  view.innerHTML=`<div class="card"><h1>Word bank</h1><p class="small mut">${W.length} words · ${W.filter(w=>w.b>=4).length} strong. Box = how many times in a row you recalled it.</p><input type="search" id="q" placeholder="Search Dutch or English…"><ul class="bank">${W.map((w,k)=>`<li data-s="${esc((w.nl+' '+w.en).toLowerCase())}"><button class="pbtn sm" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><span><b>${esc(w.nl)}</b> <span class="mut">${esc(w.en)}</span></span><span class="lv l${Math.min(6,w.b)}">${lbl(w.b)}</span></li>`).join('')||'<li class="mut">Your words appear here after your first module.</li>'}</ul></div>`;
+  view.innerHTML=`<div class="card"><h1>Word bank</h1><p class="small mut">${W.length} words · ${W.filter(w=>w.b>=4).length} strong. Box = how many times in a row you recalled it.</p><input type="search" id="q" placeholder="Search Dutch or English…"><ul class="bank">${W.map((w,k)=>`<li data-s="${esc((w.nl+' '+w.en).toLowerCase())}"><button class="pbtn sm" type="button" data-a="${k}" aria-label="Listen">${icoPlay}</button><span><b>${esc(w.nl)}</b> <span class="mut">${esc(w.en)}${w.say&&w.say!==w.nl?' · '+esc(w.say):''}</span></span><span class="lv l${Math.min(6,w.b)}">${lbl(w.b)}</span></li>`).join('')||'<li class="mut">Your words appear here after your first module.</li>'}</ul></div>`;
   $('#q').oninput=e=>{const v=e.target.value.toLowerCase();$$('.bank li[data-s]').forEach(li=>li.hidden=!li.dataset.s.includes(v))};
   $$('[data-a]').forEach(b=>b.onclick=()=>play(W[+b.dataset.a].au,1,b))}
 

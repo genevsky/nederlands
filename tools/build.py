@@ -52,6 +52,16 @@ def produced(items):
     return out
 
 
+def prompt_check(m, where):
+    """A card's English prompt must not give the answer away: no other forms of the word (e.g. 'plural: namen'),
+    and not the Dutch answer itself. Related forms go in 'say' (spoken, and shown only after answering)."""
+    for i, w in enumerate(m.get("words", []) + m.get("preps", [])):
+        en = w["en"].lower()
+        need(not re.search(r"plural|meervoud|singular|enkelvoud|·", en), f"{where} {w['nl']!r}: the prompt 'en' lists other forms ({w['en']!r}); put them in 'say'")
+        for form in {re.sub(r"^(de|het|een) ", "", w["nl"].lower()), (w.get("cz") or "").lower()} - {""}:
+            need(not re.search(r"(^|[^a-zà-ÿ])" + re.escape(form) + r"($|[^a-zà-ÿ])", en), f"{where} {w['nl']!r}: the prompt 'en' contains the answer {form!r}")
+
+
 def gate_check(m, mid):
     order = plan_order()
     need(mid in order, f"{mid} is not in curriculum.js")
@@ -59,6 +69,7 @@ def gate_check(m, mid):
     first = min(order.index(t) for t, _ in GATES.values())
     if me < first:
         return  # sessions built before the rule existed
+    prompt_check(m, mid)
     before = {tag for tag, (teacher, _) in GATES.items() if order.index(teacher) < me}
     self_ = before | {tag for tag, (teacher, _) in GATES.items() if teacher == mid}
 
