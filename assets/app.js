@@ -140,6 +140,9 @@ function logResult(it,ok,opts){if(!it.id)return;const d=today();
   if(it.word){const w=S.srs[it.word.nl];if(w){w.ts=Date.now();if(!ok){w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
   save()}
 const IV=[0,1,3,7,14,30,60,120];
+const pastForms=w=>{const F=(w.say||'').split(', ');return /^past of /.test(w.en||'')&&F.length===3?F:null};
+function pastItem(w,pl,base){const F=pastForms(w),gl=w.en.replace(/^past of \S+\s*/,'');
+  return Object.assign({t:'type',kind:'Past tense · '+(pl?'plural':'singular'),q:'Past of **'+F[0]+'**, '+(pl?'plural: **wij / jullie / zij** _____':'singular: **ik / jij / hij / zij** _____')+'\n\n*'+gl+'*',a:[pl?F[2]:F[1]],x:xOf(w)},base)}
 const xOf=w=>(w.ex||'')+(w.say&&w.say!==w.nl?'\n\n**'+w.say.replace(/, /g,' – ')+'**':'');
 function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,say:w.say,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
 
@@ -156,8 +159,8 @@ function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]]
 const gapWord=(ex,cz)=>ex.replace(new RegExp('(^|[^A-Za-zÀ-ÿ])'+cz.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![A-Za-zÀ-ÿ])'),'$1_____');
 function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes(w.cz)?w.cz:null;
   /* past-tense cards (Les 1, 3…): every other review asks for the plural instead of the singular */
-  const F=(w.say||'').split(', ');if(/^past of /.test(w.en||'')&&F.length===3&&(w.n||0)%2===1)
-    return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Past tense · plural',q:'Past of **'+F[0]+'**, plural: **wij / jullie / zij** _____\n\n*'+w.en.replace(/^past of \S+\s*/,'')+'*',a:[F[2]],x:xOf(w)};
+  /* past-tense cards (Les 1, 3…) always say singular or plural, and alternate between them from one review to the next */
+  if(pastForms(w))return pastItem(w,(w.n||0)%2===1,{id:'w:'+w.nl,_word:w.nl});
   if(w.kind==='prep'&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Preposition · '+(b<=1?'new':'box '+b),q:'**'+gapWord(ex,cz)+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
   if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
   if(b>=5&&w.au)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · listen and write',q:'Write the word you hear (with article if it has one).',au:[w.au],a:[w.nl],art:true};
@@ -257,7 +260,7 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
     setAct('I\'ve studied these → recall',()=>{$('#runc').hidden=false;$('.wl',stage).closest('.card').classList.add('fold');$('#runc').scrollIntoView({behavior:'smooth'});
       const items=shuffle(W.map((w,k)=>{const cz=w.cz&&w.ex.includes(w.cz)?w.cz:null;
         return k%2&&cz?{t:'type',id:id+'.w.'+k,word:w,q:'**'+w.ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w),kind:'Fill the gap'}
-                     :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:xOf(w),kind:'Recall'}}).concat(
+                     :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:xOf(w),kind:'Recall'}}).map(it=>pastForms(it.word)&&it.kind==='Recall'?pastItem(it.word,false,{id:it.id,word:it.word}):it).concat(
         P.map((w,k)=>({t:'type',id:id+'.pr.'+k,word:w,q:'**'+gapWord(w.ex,w.cz)+'**\n\n*('+w.en+')*',a:[w.cz],x:w.ex,kind:'Preposition'}))));
       runItems($('#run'),items,{retry:true,sk:'words',mod:id,onDone:s=>{sc('words',s);addWords(id,W.concat(P));$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time. These words are now in your daily review.</p>`;setAct(nxl,nxt,true)}})})}
   else if(kind==='read'){const R=M.read;
