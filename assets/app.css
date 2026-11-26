@@ -144,3 +144,4 @@ dl.codes div{display:flex;gap:6px;align-items:baseline}dl.codes dt{font-weight:7
 #fbt{width:100%;margin-top:10px}
 h3.vc{margin-top:18px}
 .task.func .wl{margin-top:8px}
+#upd{position:fixed;left:12px;right:12px;top:12px;z-index:50;border:0;border-radius:12px;padding:12px 14px;background:var(--ink);color:var(--bg);font:inherit;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,.2);cursor:pointer}

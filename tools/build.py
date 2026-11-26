@@ -193,6 +193,10 @@ def validate(m, mid):
         need(all(w.get(k) for k in ("nl", "en", "ex")), f"words[{i}]: needs nl, en, ex")
         if w.get("cz"):
             need(w["cz"] in w["ex"], f"words[{i}]: cz {w['cz']!r} not in example")
+            base = re.sub(r"^(de|het) ", "", w["nl"])
+            # Alex asked (2026-11-26): a gap whose answer isn't the word as listed must say which form it wants ("to arrive, past")
+            need(w["cz"].lower() == base.lower() or w.get("form"),
+                 f"words[{i}]: the gap answer {w['cz']!r} is not {base!r}: add \"form\" (present, past, participle, plural, …; \"-\" if it is only part of the word)")
     need(len({w["nl"] for w in W}) == len(W), "duplicate words")
     R = m["read"]
     need(R.get("title") and R.get("text"), "read: needs title and text")
@@ -330,6 +334,23 @@ def dict_pool(ready):
     return pool
 
 
+def gloss(w):
+    f = w.get("form")
+    return "*(" + w["en"] + (", " + f if f and f != "-" else "") + ")*"
+
+
+def word_forms(ready):
+    """word -> the form its gap asks for; cards already in the review pick it up by word."""
+    out = {}
+    for mid in ready:
+        js = open(os.path.join(MODS, mid + ".js"), encoding="utf-8").read()
+        m = json.loads(js[js.index("]=") + 2:].rstrip().rstrip(";"))
+        for w in m.get("words", []):
+            if w.get("form"):
+                out[w["nl"]] = w["form"]
+    return out
+
+
 def item_index(ready):
     """id -> current item fields, using the same ids the app gives exercises (so the error bank can refresh old wording)."""
     keep = ("t", "q", "o", "a", "x", "hint", "keep", "keepCap", "art")
@@ -347,6 +368,15 @@ def item_index(ready):
         for pre, items in groups:
             for k, it in enumerate(items):
                 idx[pre + str(k)] = {f: it[f] for f in keep if f in it}
+        # the words step: odd items are gaps, even ones recall (same rule as the app); lesson past cards ask for the singular
+        for k, w in enumerate(m.get("words", [])):
+            cz = w.get("cz")
+            if k % 2 and cz and cz in w["ex"]:
+                idx[f"{mid}.w.{k}"] = {"t": "type", "q": "**" + w["ex"].replace(cz, "_____", 1) + "**\n\n" + gloss(w), "a": [cz]}
+            elif w["en"].startswith("past of ") and len((w.get("say") or "").split(", ")) == 3:
+                F = w["say"].split(", ")
+                gl = re.sub(r"^past of \S+\s*", "", w["en"])
+                idx[f"{mid}.w.{k}"] = {"t": "type", "q": "Past of **" + F[0] + "**, singular: **ik / jij / hij / zij** _____\n\n*" + gl + "*", "a": [F[1]]}
     return idx
 
 
@@ -371,6 +401,8 @@ def main():
         f.write("window.NL_POOL=%s;\n" % json.dumps(dict_pool(ready), ensure_ascii=False, separators=(",", ":")))
         f.write("/* current text of every exercise by id: mistakes already in the review show the latest wording */\n")
         f.write("window.NL_Q=%s;\n" % json.dumps(item_index(ready), ensure_ascii=False, separators=(",", ":")))
+        f.write("/* the form a word's gap asks for (past, participle, plural…), for cards already in the review */\n")
+        f.write("window.NL_WF=%s;\n" % json.dumps(word_forms(ready), ensure_ascii=False, separators=(",", ":")))
     sys.exit(1 if bad else 0)
 
 

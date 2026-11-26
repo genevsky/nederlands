@@ -104,7 +104,7 @@
    "nl": "opgroeien",
    "en": "to grow up",
    "ex": "Mijn moeder is in Zeeland opgegroeid.",
-   "cz": "opgegroeid"
+   "cz": "opgegroeid", "form": "participle"
   },
   {
    "nl": "het dorp",
@@ -116,19 +116,19 @@
    "nl": "buiten spelen",
    "en": "to play outside",
    "ex": "Na school speelden we altijd buiten.",
-   "cz": "buiten"
+   "cz": "buiten", "form": "-"
   },
   {
    "nl": "de herinnering",
    "en": "memory",
    "ex": "Ik heb mooie herinneringen aan de zomer.",
-   "cz": "herinneringen"
+   "cz": "herinneringen", "form": "plural"
   },
   {
    "nl": "zich herinneren",
    "en": "to remember",
    "ex": "Ik herinner me mijn eerste schooldag nog goed.",
-   "cz": "herinner"
+   "cz": "herinner", "form": "present"
   },
   {
    "nl": "de basisschool",
@@ -146,7 +146,7 @@
    "nl": "missen",
    "en": "to miss",
    "ex": "Ik mis mijn oma.",
-   "cz": "mis"
+   "cz": "mis", "form": "present"
   },
   {
    "nl": "het verschil",

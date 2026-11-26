@@ -10,16 +10,16 @@
  "words": [
   {"nl": "de aanbieding", "en": "special offer", "ex": "Kaas is deze week in de aanbieding.", "cz": "aanbieding"},
   {"nl": "afrekenen", "en": "to pay (at the checkout)", "ex": "Je kunt hier ook zelf afrekenen.", "cz": "afrekenen"},
-  {"nl": "meenemen", "en": "to take along, bring", "ex": "Neem je een tas mee?", "cz": "mee"},
+  {"nl": "meenemen", "en": "to take along, bring", "ex": "Neem je een tas mee?", "cz": "mee", "form": "-"},
   {"nl": "de kassa", "en": "checkout, till", "ex": "Er staat een lange rij bij de kassa.", "cz": "kassa"},
   {"nl": "het bonnetje", "en": "receipt", "ex": "Wilt u het bonnetje?", "cz": "bonnetje"},
   {"nl": "de bezorging", "en": "delivery", "ex": "De bezorging is gratis vanaf vijftig euro.", "cz": "bezorging"},
   {"nl": "ophalen", "en": "to pick up, collect", "ex": "Ik kom het morgen ophalen.", "cz": "ophalen"},
   {"nl": "het pakketje", "en": "parcel", "ex": "Het pakketje is nog niet bezorgd.", "cz": "pakketje"},
   {"nl": "vers", "en": "fresh", "ex": "Op de markt is de vis altijd vers.", "cz": "vers"},
-  {"nl": "de prijs", "en": "price", "ex": "De prijzen zijn weer omhooggegaan.", "cz": "prijzen"},
+  {"nl": "de prijs", "en": "price", "ex": "De prijzen zijn weer omhooggegaan.", "cz": "prijzen", "form": "plural"},
   {"nl": "omruilen", "en": "to exchange (a product)", "ex": "Kan ik deze broek nog omruilen?", "cz": "omruilen"},
-  {"nl": "uitgeven", "en": "to spend (money)", "ex": "Hoeveel geef je per week uit aan eten?", "cz": "uit"}
+  {"nl": "uitgeven", "en": "to spend (money)", "ex": "Hoeveel geef je per week uit aan eten?", "cz": "uit", "form": "-"}
  ],
  "read": {
   "type": "Newspaper interview", "title": "De markt is meer dan een winkel",

@@ -9,7 +9,7 @@
  ],
  "words": [
   {"nl": "de verjaardag", "en": "birthday", "ex": "Zaterdag was de verjaardag van mijn schoonmoeder.", "cz": "verjaardag"},
-  {"nl": "uitslapen", "en": "to sleep in", "ex": "Zondag heb ik lekker uitgeslapen.", "cz": "uitgeslapen"},
+  {"nl": "uitslapen", "en": "to sleep in", "ex": "Zondag heb ik lekker uitgeslapen.", "cz": "uitgeslapen", "form": "participle"},
   {"nl": "gezellig", "en": "cosy, fun, sociable", "ex": "Het feest was heel gezellig.", "cz": "gezellig"},
   {"nl": "de buren", "en": "the neighbours", "ex": "We hebben bij de buren gegeten.", "cz": "buren"},
   {"nl": "het bos", "en": "forest, woods", "ex": "Zondagmiddag hebben we in het bos gewandeld.", "cz": "bos"},
@@ -17,9 +17,9 @@
   {"nl": "de taart", "en": "cake", "ex": "Mijn dochter heeft een taart gebakken.", "cz": "taart"},
   {"nl": "moe", "en": "tired", "ex": "Na het feest was ik heel moe.", "cz": "moe"},
   {"nl": "vorig", "en": "last, previous", "ex": "Vorig weekend zijn we naar Utrecht gegaan.", "cz": "Vorig"},
-  {"nl": "blijven", "en": "to stay", "ex": "We zijn de hele dag thuis gebleven.", "cz": "gebleven"},
-  {"nl": "gebeuren", "en": "to happen", "ex": "Wat is er gebeurd?", "cz": "gebeurd"},
-  {"nl": "regenen", "en": "to rain", "ex": "Het heeft de hele zaterdag geregend.", "cz": "geregend"}
+  {"nl": "blijven", "en": "to stay", "ex": "We zijn de hele dag thuis gebleven.", "cz": "gebleven", "form": "participle"},
+  {"nl": "gebeuren", "en": "to happen", "ex": "Wat is er gebeurd?", "cz": "gebeurd", "form": "participle"},
+  {"nl": "regenen", "en": "to rain", "ex": "Het heeft de hele zaterdag geregend.", "cz": "geregend", "form": "participle"}
  ],
  "read": {
   "type": "Informal email", "title": "Hoe was jouw weekend?",

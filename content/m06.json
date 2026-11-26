@@ -117,7 +117,7 @@
    "nl": "inchecken",
    "en": "to check in (with your card)",
    "ex": "Vergeet niet in te checken met je pas.",
-   "cz": "in te checken"
+   "cz": "in te checken", "form": "te + infinitive"
   },
   {
    "nl": "de storing",
@@ -135,13 +135,13 @@
    "nl": "vertrekken",
    "en": "to leave, depart",
    "ex": "De trein naar Utrecht vertrekt om acht uur.",
-   "cz": "vertrekt"
+   "cz": "vertrekt", "form": "present"
   },
   {
    "nl": "aankomen",
    "en": "to arrive",
    "ex": "We kwamen pas om elf uur aan.",
-   "cz": "kwamen"
+   "cz": "kwamen", "form": "past"
   },
   {
    "nl": "het retourtje",

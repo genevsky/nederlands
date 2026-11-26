@@ -45,7 +45,7 @@
    "nl": "zich zorgen maken",
    "en": "to worry",
    "ex": "Ik maak me zorgen over zijn cijfers.",
-   "cz": "zorgen"
+   "cz": "zorgen", "form": "-"
   },
   {
    "nl": "het gesprek",
@@ -63,7 +63,7 @@
    "nl": "moeite hebben met",
    "en": "to struggle with",
    "ex": "Ze heeft moeite met Franse grammatica.",
-   "cz": "moeite"
+   "cz": "moeite", "form": "-"
   },
   {
    "nl": "de bijles",
@@ -81,7 +81,7 @@
    "nl": "afspreken",
    "en": "to agree, arrange",
    "ex": "We spreken af dat hij elke dag een half uur oefent.",
-   "cz": "spreken"
+   "cz": "spreken", "form": "present"
   }
  ],
  "read": {

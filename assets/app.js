@@ -140,11 +140,12 @@ function logResult(it,ok,opts){if(!it.id)return;const d=today();
   if(it.word){const w=S.srs[it.word.nl];if(w){w.ts=Date.now();if(!ok){w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
   save()}
 const IV=[0,1,3,7,14,30,60,120];
+const glo=w=>{const f=w.form||(window.NL_WF||{})[w.nl];return '*('+w.en+(f&&f!=='-'?', '+f:'')+')*'};
 const pastForms=w=>{const F=(w.say||'').split(', ');return /^past of /.test(w.en||'')&&F.length===3?F:null};
 function pastItem(w,pl,base){const F=pastForms(w),gl=w.en.replace(/^past of \S+\s*/,'');
   return Object.assign({t:'type',kind:'Past tense · '+(pl?'plural':'singular'),q:'Past of **'+F[0]+'**, '+(pl?'plural: **wij / jullie / zij** _____':'singular: **ik / jij / hij / zij** _____')+'\n\n*'+gl+'*',a:[pl?F[2]:F[1]],x:xOf(w)},base)}
 const xOf=w=>(w.ex||'')+(w.say&&w.say!==w.nl?'\n\n**'+w.say.replace(/, /g,' – ')+'**':'');
-function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,say:w.say,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
+function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,say:w.say,form:w.form,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
 
 /* review deck: open errors due + words due */
 function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,(window.NL_Q||{})[k]||{},{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}),e))}
@@ -158,11 +159,10 @@ function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]]
 /* a preposition card blanks the whole word only (not 'op' inside 'opgeven') */
 const gapWord=(ex,cz)=>ex.replace(new RegExp('(^|[^A-Za-zÀ-ÿ])'+cz.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?![A-Za-zÀ-ÿ])'),'$1_____');
 function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes(w.cz)?w.cz:null;
-  /* past-tense cards (Les 1, 3…): every other review asks for the plural instead of the singular */
   /* past-tense cards (Les 1, 3…) always say singular or plural, and alternate between them from one review to the next */
   if(pastForms(w))return pastItem(w,(w.n||0)%2===1,{id:'w:'+w.nl,_word:w.nl});
   if(w.kind==='prep'&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Preposition · '+(b<=1?'new':'box '+b),q:'**'+gapWord(ex,cz)+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
-  if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w)};
+  if(b>=3&&cz)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · in context',q:'**'+ex.replace(cz,'_____')+'**\n\n'+glo(w),a:[cz],x:xOf(w)};
   if(b>=5&&w.au)return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · listen and write',q:'Write the word you hear (with article if it has one).',au:[w.au],a:[w.nl],art:true};
   return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · '+(b<=1?'new':'box '+b),q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:xOf(w)}}
 function dueWords(){const d=today();return Object.values(S.srs).filter(w=>w.due<=d).sort((a,b)=>a.due-b.due||a.b-b.b).map(wordItem)}
@@ -201,6 +201,17 @@ function route(){stopAudio();ticking=false;curMod=null;setAct(null);busyItem=fal
   if(h[0]==='progress')return viewProgress();
   return viewHome()}
 window.addEventListener('hashchange',route);
+/* a tab or home-screen app left open keeps running old code: look for a newer version when the app comes back into view or changes page.
+   Between exercises it updates straight away; in the middle of a step it shows a bar instead. */
+let newV=null;
+const goNew=()=>{location.href=location.pathname+'?u='+newV+location.hash};
+function offerNew(){const h=location.hash.replace(/^#\/?/,'').split('/');
+  if(!(h[0]==='m'&&h[2]!==undefined)&&h[0]!=='review')return goNew();
+  if($('#upd'))return;const b=document.createElement('button');b.id='upd';b.textContent='A newer version of the course is ready · tap to update';b.onclick=goNew;document.body.appendChild(b)}
+async function checkVer(){if(!newV){try{const t=await (await fetch('index.html?_='+Date.now(),{cache:'no-store'})).text();const m=/NL_VER='([^']+)'/.exec(t);if(m&&m[1]!==VER)newV=m[1]}catch(e){}}if(newV)offerNew()}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVer()});
+window.addEventListener('hashchange',checkVer);
+setTimeout(checkVer,3000);
 
 function viewHome(){setNav('home');const nm=nextModule(),due=dueErrs().length+dueWords().length;const wk=weekMins(),st=streak();
   const d0=today(),dow=(new Date().getDay()+6)%7;const strip=[0,1,2,3,4,5,6].map(k=>{const d=d0-dow+k,s=S.days[d]||0;return`<div class="dd${s>=60?' on':''}${d===d0?' now':''}"><span>${['M','T','W','T','F','S','S'][k]}</span><i></i></div>`}).join('');
@@ -259,7 +270,7 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
     $$('[data-q]',stage).forEach(b=>b.onclick=async()=>{const w=P[+b.dataset.q];await play(w.au,rate(),b);if(w.aux)await play(w.aux,rate(),b)});
     setAct('I\'ve studied these → recall',()=>{$('#runc').hidden=false;$('.wl',stage).closest('.card').classList.add('fold');$('#runc').scrollIntoView({behavior:'smooth'});
       const items=shuffle(W.map((w,k)=>{const cz=w.cz&&w.ex.includes(w.cz)?w.cz:null;
-        return k%2&&cz?{t:'type',id:id+'.w.'+k,word:w,q:'**'+w.ex.replace(cz,'_____')+'**\n\n*('+w.en+')*',a:[cz],x:xOf(w),kind:'Fill the gap'}
+        return k%2&&cz?{t:'type',id:id+'.w.'+k,word:w,q:'**'+w.ex.replace(cz,'_____')+'**\n\n'+glo(w),a:[cz],x:xOf(w),kind:'Fill the gap'}
                      :{t:'type',id:id+'.w.'+k,word:w,q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:xOf(w),kind:'Recall'}}).map(it=>pastForms(it.word)&&it.kind==='Recall'?pastItem(it.word,false,{id:it.id,word:it.word}):it).concat(
         P.map((w,k)=>({t:'type',id:id+'.pr.'+k,word:w,q:'**'+gapWord(w.ex,w.cz)+'**\n\n*('+w.en+')*',a:[w.cz],x:w.ex,kind:'Preposition'}))));
       runItems($('#run'),items,{retry:true,sk:'words',mod:id,onDone:s=>{sc('words',s);addWords(id,W.concat(P));$('#run').innerHTML=`<p class="good-t">✓ ${Math.round(s[0])}/${s[1]} right first time. These words are now in your daily review.</p>`;setAct(nxl,nxt,true)}})})}
