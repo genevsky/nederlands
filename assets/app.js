@@ -73,10 +73,11 @@ let seqId=0;
 async function playSeq(list,btn,gap){if(btn&&btn.classList.contains('playing')){seqId++;stopAudio();return}const my=++seqId;
   for(const s of list||[]){if(my!==seqId)break;await play(s,rate(),btn);if(btn&&my===seqId)btn.classList.add('playing');if(gap)await new Promise(r=>setTimeout(r,gap))}
   if(my===seqId&&btn)btn.classList.remove('playing')}
-let slow=false;
-const speedBtn=()=>`<button class="chip speed${slow?' on':''}" type="button" data-speed>🐢 ${slow?'Slow on':'Slow'}</button>`;
-function bindSpeed(root){$$('[data-speed]',root).forEach(b=>b.onclick=()=>{slow=!slow;$$('[data-speed]').forEach(x=>{x.classList.toggle('on',slow);x.textContent='🐢 '+(slow?'Slow on':'Slow')})})}
-const rate=()=>slow?.75:1;
+/* listening speed: normal, slow (0.75) or slower (0.6); the two buttons toggle, one at a time, and stay set across steps */
+let slow=0;const SPEEDS=[[1,'🐢 Slow'],[2,'🐌 Slower']];
+const speedBtn=()=>SPEEDS.map(([k,l])=>`<button class="chip speed${slow===k?' on':''}" type="button" data-speed="${k}">${l}</button>`).join(' ');
+function bindSpeed(root){$$('[data-speed]',root).forEach(b=>b.onclick=()=>{const k=+b.dataset.speed;slow=slow===k?0:k;$$('[data-speed]').forEach(x=>x.classList.toggle('on',+x.dataset.speed===slow))})}
+const rate=()=>slow===2?.6:slow===1?.75:1;
 const icoPlay='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 
 /* ---------- item runner ----------
