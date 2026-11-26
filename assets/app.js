@@ -3,7 +3,8 @@
    State (localStorage 'nl:state', synced by sync.js):
      mods[id]   {ts, step, done, ms, sc:{words:[ok,n],read,listen,dict,gram}}
      srs[nl]    {ts, nl, en, ex, cz, au, b(box), due(day), n, w, mod}
-     errs[id]   {ts, it(item snapshot), sk(skill), mod, n(times wrong), ok(correct streak), due, res(resolved)}
+     errs[id]   {ts, it(item snapshot), sk(skill), mod, n(times wrong), ok(correct streak), due, res(resolved), cb(check-back stage 1–2, 3 = done)}
+     gram[id]   {ts, b(box), due, n, w(times wrong), seen[item ids, latest last], miss{item id: times wrong}}  grammar topic of a finished session
      writing[id]{ts, task, text, words}
      days[day]  seconds practised */
 (function(){
@@ -36,7 +37,7 @@ function md(s){if(!s)return '';const out=[];String(s).split(/\n{2,}/).forEach(b=
 
 /* ---------- state ---------- */
 const KEY='nl:state';
-const load=()=>{let s;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}return Object.assign({v:1,mods:{},srs:{},errs:{},writing:{},days:{}},s||{})};
+const load=()=>{let s;try{s=JSON.parse(localStorage.getItem(KEY))}catch(e){}return Object.assign({v:1,mods:{},srs:{},errs:{},writing:{},days:{},gram:{}},s||{})};
 let S=load();
 /* cards from Les 1 had the plural in the prompt, which gives the answer away: move the forms to 'say' (shown after answering) */
 Object.values(S.srs).forEach(w=>{const m=/^(.*?)\s*·\s*plural:\s*(.+)$/.exec(w.en||'');if(!m)return;const v=/past of (\S+)/.exec(m[1]);w.en=m[1];if(!w.say&&v)w.say=v[1]+', '+w.nl+', '+m[2]});
@@ -140,6 +141,11 @@ function logResult(it,ok,opts){if(!it.id)return;const d=today();
   if(it.word){const w=S.srs[it.word.nl];if(w){w.ts=Date.now();if(!ok){w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
   save()}
 const IV=[0,1,3,7,14,30,60,120];
+/* intervals vary by about ±15%, so cards learned on the same day don't keep coming back together;
+   cards and topics you got wrong 2+ times come back sooner (×0.7, from 3 times ×0.5) */
+const jit=n=>n<=1?n:Math.max(1,Math.round(n*(0.85+Math.random()*0.3)));
+const nextIv=(b,w)=>jit(Math.max(1,Math.round(IV[b]*((w||0)>=3?.5:(w||0)>=2?.7:1))));
+const dayOf=ts=>Math.floor((ts-new Date(ts).getTimezoneOffset()*6e4)/DAYMS);
 const glo=w=>{const f=w.form||(window.NL_WF||{})[w.nl];return '*('+w.en+(f&&f!=='-'?', '+f:'')+')*'};
 const pastForms=w=>{const F=(w.say||'').split(', ');return /^past of /.test(w.en||'')&&F.length===3?F:null};
 function pastItem(w,pl,base){const F=pastForms(w),gl=w.en.replace(/^past of \S+\s*/,'');
@@ -148,7 +154,25 @@ const xOf=w=>(w.ex||'')+(w.say&&w.say!==w.nl?'\n\n**'+w.say.replace(/, /g,' – 
 function addWords(modId,words){const d=today();words.forEach(w=>{if(!S.srs[w.nl])S.srs[w.nl]={ts:Date.now(),nl:w.nl,en:w.en,ex:w.ex,cz:w.cz,au:w.au,kind:w.kind,say:w.say,form:w.form,b:1,due:d+1,n:0,w:0,mod:modId}});save()}
 
 /* review deck: open errors due + words due */
-function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>!e.res&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,(window.NL_Q||{})[k]||{},{id:k,_err:1,kind:'From your mistakes · '+(SKILL[e.sk]||'')}),e))}
+const isCheck=e=>e.res&&(e.cb===1||e.cb===2);
+function dueErrs(){const d=today();return Object.entries(S.errs).filter(([k,e])=>(!e.res||isCheck(e))&&e.due<=d).map(([k,e])=>varyDict(Object.assign({},e.it,(window.NL_Q||{})[k]||{},{id:k,_err:1,_n:e.n||1,kind:(isCheck(e)?'Check-back: an old mistake · ':'From your mistakes · ')+(SKILL[e.sk]||'')}),e))}
+/* most-missed first, then mixed up */
+const pickErrs=(L,n)=>shuffle(shuffle(L).sort((a,b)=>b._n-a._n).slice(0,n));
+(function(){const d=today();let ch=0;Object.values(S.errs).forEach(e=>{if(e.res&&e.cb==null){e.cb=1;e.due=Math.max(dayOf(e.ts||Date.now())+jit(14),d+1+Math.floor(Math.random()*7));ch=1}});if(ch)save()})();
+/* grammar review deck: the grammar of every finished session comes back on the same spaced schedule as words,
+   each time with a different question from that topic (preferring ones you got wrong before).
+   A topic starts as 'hard' (shorter intervals) for each grammar mistake from it that is still open or was made 2+ times. */
+function addGram(){const d=today(),P=window.NL_GP||{};
+  const fresh=Object.keys(P).filter(id=>!S.gram[id]&&(S.mods[id]||{}).done).map(id=>({id,w:Object.values(S.errs).filter(e=>e.mod===id&&e.sk==='gram'&&(!e.res||e.n>=2)).length}));
+  fresh.sort((a,b)=>b.w-a.w).forEach((t,k)=>{S.gram[t.id]={ts:Date.now(),b:1,due:d+1+k,n:0,w:Math.min(t.w,3),seen:[],miss:{}}});if(fresh.length)save()}
+function gramItem(id){const g=S.gram[id],P=(window.NL_GP||{})[id],Q=window.NL_Q||{};if(!P)return null;
+  const ids=P.ids.filter(x=>Q[x]);if(!ids.length)return null;
+  const recent=new Set((g.seen||[]).slice(-Math.min(8,Math.floor(ids.length/2))));
+  const c=ids.filter(x=>!recent.has(x)),pool=c.length?c:ids;
+  const wt=x=>1+2*((g.miss||{})[x]||0)+((S.errs[x]||{}).n||0);let r=Math.random()*pool.reduce((a,x)=>a+wt(x),0),pick=pool[0];
+  for(const x of pool){r-=wt(x);if(r<=0){pick=x;break}}
+  return Object.assign({},Q[pick],{id:'gr:'+pick,_gram:id,_gid:pick,kind:'Grammar review · '+P.t})}
+function dueGram(){addGram();const d=today();return Object.entries(S.gram).filter(([k,g])=>g.due<=d).sort((a,b)=>a[1].due-b[1].due||b[1].w-a[1].w).map(([k])=>gramItem(k)).filter(Boolean)}
 /* a dictation mistake comes back as a different sentence from the same module (preferring ones that share words with
    the original), so you practise the sounds and spellings, not one memorised sentence; it never repeats the last one served */
 function varyDict(it,e){const P=(window.NL_POOL||{})[e.mod||it.id.split('.')[0]];if(it.t!=='dict'||!P||!P.length)return it;
@@ -167,8 +191,12 @@ function wordItem(w){const b=w.b||1;const ex=w.ex||'';const cz=w.cz&&ex.includes
   return{t:'type',id:'w:'+w.nl,_word:w.nl,kind:'Word · '+(b<=1?'new':'box '+b),q:'In Dutch: **'+w.en+'**',a:[w.nl],art:true,x:xOf(w)}}
 function dueWords(){const d=today();return Object.values(S.srs).filter(w=>w.due<=d).sort((a,b)=>a.due-b.due||a.b-b.b).map(wordItem)}
 function reviewHook(it,ok){const d=today();
-  if(it._word){const w=S.srs[it._word];if(w){w.ts=Date.now();w.n=(w.n||0)+1;if(ok){w.b=Math.min(7,(w.b||1)+1);w.due=d+IV[w.b]}else{w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
-  if(it._err){const e=S.errs[it.id];if(e){e.ts=Date.now();if(it.t==='dict')e.last=it._var||it.a[0];if(ok){e.ok=(e.ok||0)+1;if(e.ok>=2)e.res=true;else e.due=d+3}else{e.ok=0;e.n=(e.n||0)+1;e.due=d+1}}}
+  if(it._word){const w=S.srs[it._word];if(w){w.ts=Date.now();w.n=(w.n||0)+1;if(ok){w.b=Math.min(7,(w.b||1)+1);w.due=d+nextIv(w.b,w.w)}else{w.w=(w.w||0)+1;w.b=1;w.due=d+1}}}
+  if(it._err){const e=S.errs[it.id];if(e){e.ts=Date.now();if(it.t==='dict')e.last=it._var||it.a[0];
+    if(isCheck(e)){if(ok){if(e.cb===1){e.cb=2;e.due=d+jit(28)}else e.cb=3}else{e.res=false;e.cb=0;e.ok=0;e.n=(e.n||0)+1;e.due=d+1}}
+    else if(ok){e.ok=(e.ok||0)+1;if(e.ok>=2){e.res=true;e.cb=1;e.due=d+jit(14)}else e.due=d+jit(3)}else{e.ok=0;e.n=(e.n||0)+1;e.due=d+1}}}
+  if(it._gram){const g=S.gram[it._gram];if(g){g.ts=Date.now();g.n=(g.n||0)+1;g.seen=(g.seen||[]).concat(it._gid).slice(-12);
+    if(ok){g.b=Math.min(7,(g.b||1)+1);g.due=d+nextIv(g.b,g.w)}else{g.w=(g.w||0)+1;g.b=1;g.due=d+1;g.miss=g.miss||{};g.miss[it._gid]=(g.miss[it._gid]||0)+1}}}
   save()}
 
 /* ---------- action bar ---------- */
@@ -259,7 +287,7 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
         <dl class="codes">${used.map(c=>`<div><dt>${esc(c)}</dt><dd>${esc(CODES[c]||'')}</dd></div>`).join('')}</dl><p class="mtext">${marked}</p>
         <textarea id="fbt" rows="6" lang="nl" spellcheck="false">${esc(rev||plain)}</textarea><div class="row"><button class="btn sm ghost" type="button" id="fbs">Show the corrections</button></div><div id="fbc" hidden>${corr}${fb.better?`<h3>A corrected version</h3><p class="wtext">${esc(fb.better)}</p>`:''}</div></div>`}
     else if(fb&&fb.items&&fb.items.length)h+=`<div class="card fbcard"><h2>Feedback on your writing</h2>${fb.note?md(fb.note):''}${corr}</div>`;
-    const warm=shuffle(dueErrs()).slice(0,5).concat(shuffle(dueWords()).slice(0,5)).concat((M.personal||[]).map((p,k)=>Object.assign({id:id+'.p.'+k,kind:'Made for you'},p)));
+    const warm=pickErrs(dueErrs(),5).concat(dueGram().slice(0,2),shuffle(dueWords()).slice(0,5)).concat((M.personal||[]).map((p,k)=>Object.assign({id:id+'.p.'+k,kind:'Made for you'},p)));
     const bindFb=()=>{const b=$('#fbs');if(!b)return;b.onclick=()=>{const prevW=(fb.for||[])[0];if(prevW&&S.writing[prevW]){S.writing[prevW].rev=$('#fbt').value;S.writing[prevW].revts=Date.now();save()}$('#fbc').hidden=false;b.hidden=true;$('#fbc').scrollIntoView({behavior:'smooth'})}};
     if(warm.length){h+=`<div class="card"><h2>Warm-up</h2><p class="small mut">${warm.length} quick questions: your recent mistakes and words that are due. Retrieval first, new material after.</p><div id="run"></div></div>`;stage.innerHTML=h;bindFb();
       runItems($('#run'),warm,{retry:true,review:reviewHook,onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Warm-up done</p>';setAct(nxl,nxt,true)}})}
@@ -354,11 +382,11 @@ function bindGloss(root){$$('.gl',root).forEach(b=>b.onclick=e=>{e.stopPropagati
 
 /* ----- daily review ----- */
 function viewReview(){setNav('review');ticking=true;
-  const errs=shuffle(dueErrs()).slice(0,12),words=dueWords().slice(0,Math.max(8,24-errs.length));const items=[];
-  while(errs.length||words.length){if(words.length)items.push(words.shift());if(errs.length)items.push(errs.shift());if(words.length)items.push(words.shift())}
-  if(!items.length){ticking=false;const nx=Object.values(S.srs).map(w=>w.due).concat(Object.values(S.errs).filter(e=>!e.res).map(e=>e.due)).sort((a,b)=>a-b)[0];
+  const errs=pickErrs(dueErrs(),12),gram=dueGram().slice(0,5),words=dueWords().slice(0,Math.max(8,26-errs.length-gram.length));const items=[];
+  while(errs.length||words.length||gram.length){if(words.length)items.push(words.shift());if(errs.length)items.push(errs.shift());if(gram.length)items.push(gram.shift());if(words.length)items.push(words.shift())}
+  if(!items.length){ticking=false;const nx=Object.values(S.srs).map(w=>w.due).concat(Object.values(S.errs).filter(e=>!e.res||isCheck(e)).map(e=>e.due),Object.values(S.gram).map(g=>g.due)).sort((a,b)=>a-b)[0];
     view.innerHTML=`<div class="card"><h1>Daily review</h1><p>Nothing due right now. ${nx?'Next cards: '+fmt(dayDate(nx))+'.':'Finish a module to fill your review deck.'}</p><p class="small mut">Spacing works because you forget a little in between. Coming back tomorrow is the point.</p><a class="btn" href="#/">Back</a></div>`;return}
-  view.innerHTML=`<div class="card"><p class="eyebrow">Spaced repetition</p><h1>Daily review</h1><p class="small mut">${items.length} cards. Words return after 1, 3, 7, 14, 30… days when you know them; a mistake sends them back to tomorrow. Your past errors leave the deck after two correct answers on different days.</p><div id="run"></div></div>`;
+  view.innerHTML=`<div class="card"><p class="eyebrow">Spaced repetition</p><h1>Daily review</h1><p class="small mut">${items.length} cards. Words and grammar topics return after about 1, 3, 7, 14, 30… days when you know them (sooner if they gave you trouble); a mistake sends them back to tomorrow. Mistakes leave the deck after two correct answers on different days, then come back twice more as a check (after about 2 and 6 weeks).</p><div id="run"></div></div>`;
   runItems($('#run'),items,{retry:true,review:reviewHook,onDone:s=>{ticking=false;$('#run').innerHTML=`<p class="good-t">✓ Review done: ${Math.round(s[0])}/${s[1]} right first time.</p>`;setAct('Back to overview',()=>{location.hash='#/'},true)}})}
 
 /* ----- word bank ----- */

@@ -55,7 +55,7 @@ def main():
         for name, vp in (("phone", {"width": 390, "height": 844}), ("desktop", {"width": 1280, "height": 900})):
             ctx = br.new_context(viewport=vp, is_mobile=name == "phone", has_touch=name == "phone")
             page = ctx.new_page()
-            page.on("pageerror", lambda e: errors.append(f"{name}: {e}"))
+            page.on("pageerror", lambda e: (errors.append(f"{name}: {e}"), print("PAGEERROR", e)))
             page.on("console", lambda m: m.type == "error" and errors.append(f"{name} console: {m.text}"))
             page.goto(url + "/#/m/" + mid); page.wait_for_selector("ol.steps")
             if page.locator(".fbcard").count(): print(name, "feedback items", page.locator(".fbcard .corr").count())
@@ -84,8 +84,14 @@ def main():
             assert ov <= 0, f"{name}: horizontal overflow {ov}px"
             page.screenshot(path=f"/tmp/nl-{name}-end.png", full_page=False) if False else None
             # time travel 1 day: everything banked is due -> review
-            page.evaluate("""(()=>{const s=JSON.parse(localStorage.getItem('nl:state'));Object.values(s.errs).forEach(e=>e.due-=1);Object.values(s.srs).forEach(w=>w.due-=1);localStorage.setItem('nl:state',JSON.stringify(s))})()""")
-            page.goto(url + "/#/review"); page.reload(); page.wait_for_selector("#run .item")
+            # (go to the review first: the open page saves its state on the way, which would undo the time travel)
+            page.goto(url + "/#/review")
+            page.evaluate("""(()=>{const s=JSON.parse(localStorage.getItem('nl:state'));Object.values(s.errs).forEach(e=>e.due-=1);Object.values(s.srs).forEach(w=>w.due-=1);Object.values(s.gram||{}).forEach(g=>g.due-=1);localStorage.setItem('nl:state',JSON.stringify(s))})()""")
+            page.reload()
+            try:
+                page.wait_for_selector("#run .item", timeout=8000)
+            except Exception:
+                print("REVIEW PAGE:", page.url, page.locator("#view").inner_text()[:400]); raise
             n = run_items(page, 200); print(name, "review items", n)
             page.goto(url + "/#/progress"); page.wait_for_selector(".bars")
             ov = page.evaluate("document.documentElement.scrollWidth - innerWidth"); assert ov <= 0, f"{name}: progress overflow {ov}px"

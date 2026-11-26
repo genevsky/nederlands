@@ -69,9 +69,9 @@ def tense_check(m, where):
     if m.get("kind") == "les":
         for c in m["chunks"]:
             items += c["items"]
-        items += m["practice"]
+        items += m["practice"] + m.get("review", [])
     else:
-        items += m["gram"]["items"] + m["gram"].get("check", []) + m.get("personal", [])
+        items += m["gram"]["items"] + m["gram"].get("check", []) + m["gram"].get("review", []) + m.get("personal", [])
     past = set().union(*GATE_FORMS.values())
     for it in items:
         q = it.get("q", "")
@@ -83,6 +83,13 @@ def tense_check(m, where):
             w = ans.lower().strip(" .")
             if w in past or (len(w) > 4 and re.fullmatch(r"[a-zà-ÿ]+(te|de|ten|den)", w) and w[:-2] != h.group(1)[:-2]) or re.fullmatch(r"ge[a-zà-ÿ]+[dt]|[a-zà-ÿ]+ge[a-zà-ÿ]+[dt]", w):
                 raise Bad(f"{where}: {q[-50:]!r} asks for {ans!r} but the hint doesn't say the tense; write '({h.group(1)}, past)' or '({h.group(1)}, participle)'")
+
+
+def hint_check(it, where):
+    """Every verb hint names the form it wants, also the present: '(werken, present)', '(betalen, participle)'.
+    Grammar items come back in the review long after the module, next to other tenses (Alex, 2026-11-26)."""
+    h = re.search(r"\(([a-zà-ÿ]+)\)", it.get("q", ""))
+    need(not h, f"{where}: hint ({h and h.group(1)}) must name the form: ({h and h.group(1)}, present / past / participle / infinitive)")
 
 
 def gate_check(m, mid):
@@ -112,11 +119,13 @@ def gate_check(m, mid):
         for k, c in enumerate(m["chunks"]):
             check(produced(c["items"]), self_, f"chunks[{k}]")
         check(produced(m["practice"]), self_, "practice")
+        check(produced(m.get("review")), self_, "review")
         check([w["nl"] for w in m["words"] + m.get("preps", [])] + [w.get("cz", "") for w in m["words"] + m.get("preps", [])], self_, "words")
     else:
         need(m.get("flow") == 2, "modules from now on need \"flow\": 2 (grammar explained before it is practised)")
         need(2 <= len(m["gram"].get("check", [])) <= 4, "gram.check: 2–4 easy items after the explanation")
-        check(produced(m["gram"]["check"]) + produced(m["gram"]["items"]), self_, "gram")
+        check(produced(m["gram"]["check"]) + produced(m["gram"]["items"]) + produced(m["gram"].get("review")), self_, "gram")
+        need(4 <= len(m["gram"].get("review", [])) <= 8, "gram.review: 4–8 extra items for the grammar review deck (asked instead of the module's own items, so Alex can't remember answers)")
         check([w["nl"] for w in m["words"] + m.get("preps", [])] + [w.get("cz", "") for w in m["words"] + m.get("preps", [])], self_, "words")
 
 
@@ -169,6 +178,9 @@ def validate_les(m, mid):
         check_items(c["items"], f"chunks[{k}].items")
     need(len(m["practice"]) >= 8, "practice: 8+ items, easy to hard")
     check_items(m["practice"], "practice")
+    check_items(m.get("review", []), "review")
+    for k, it in enumerate([i for c in m["chunks"] for i in c["items"]] + m["practice"] + m.get("review", [])):
+        hint_check(it, f"{m['id']} item {k}")
     W = m["words"]
     need(6 <= len(W) <= 24, "words (forms to learn): use 6–24")
     for i, w in enumerate(W):
@@ -212,6 +224,9 @@ def validate(m, mid):
     G = m["gram"]
     need(G.get("title") and G.get("explain") and len(G.get("items", [])) >= 6, "gram: needs title, explain, 6+ items")
     check_items(G["items"], "gram.items")
+    check_items(G.get("review", []), "gram.review")
+    for k, it in enumerate(G["items"] + G.get("check", []) + G.get("review", []) + m.get("personal", [])):
+        hint_check(it, f"{mid} gram/personal item {k}")
     check_items(m.get("personal", []), "personal")
     Wr = m["write"]
     need(all(Wr.get(k) for k in ("task", "min", "max", "check", "model")), "write: needs task, min, max, check, model")
@@ -339,6 +354,26 @@ def gloss(w):
     return "*(" + w["en"] + (", " + f if f and f != "-" else "") + ")*"
 
 
+def gram_pools(ready):
+    """session -> grammar topic and the ids of its self-contained grammar items (all in NL_Q).
+    The review asks one of them each time the topic comes back, never the same one twice in a row."""
+    out = {}
+    for mid in ready:
+        js = open(os.path.join(MODS, mid + ".js"), encoding="utf-8").read()
+        m = json.loads(js[js.index("]=") + 2:].rstrip().rstrip(";"))
+        if m.get("kind") == "les":
+            ids = [f"{mid}.c{k}.{j}" for k, c in enumerate(m["chunks"]) for j in range(len(c["items"]))]
+            ids += [f"{mid}.g.{k}" for k in range(len(m["practice"]))] + [f"{mid}.gr.{k}" for k in range(len(m.get("review", [])))]
+            title = m["title"]
+        else:
+            G = m["gram"]
+            ids = [f"{mid}.g.{k}" for k in range(len(G["items"]))] + [f"{mid}.c.{k}" for k in range(len(G.get("check", [])))]
+            ids += [f"{mid}.gr.{k}" for k in range(len(G.get("review", [])))]
+            title = G["title"]
+        out[mid] = {"t": title, "ids": ids}
+    return out
+
+
 def word_forms(ready):
     """word -> the form its gap asks for; cards already in the review pick it up by word."""
     out = {}
@@ -362,9 +397,10 @@ def item_index(ready):
         if m.get("kind") == "les":
             groups += [(f"{mid}.c{k}.", c["items"]) for k, c in enumerate(m["chunks"])]
             groups.append((f"{mid}.g.", m["practice"]))
+            groups.append((f"{mid}.gr.", m.get("review", [])))
         else:
             groups += [(f"{mid}.g.", m["gram"]["items"]), (f"{mid}.c.", m["gram"].get("check", [])),
-                       (f"{mid}.p.", m.get("personal", [])), (f"{mid}.r.", m["read"]["qs"]), (f"{mid}.l.", m["listen"]["qs"])]
+                       (f"{mid}.gr.", m["gram"].get("review", [])), (f"{mid}.p.", m.get("personal", [])), (f"{mid}.r.", m["read"]["qs"]), (f"{mid}.l.", m["listen"]["qs"])]
         for pre, items in groups:
             for k, it in enumerate(items):
                 idx[pre + str(k)] = {f: it[f] for f in keep if f in it}
@@ -403,6 +439,8 @@ def main():
         f.write("window.NL_Q=%s;\n" % json.dumps(item_index(ready), ensure_ascii=False, separators=(",", ":")))
         f.write("/* the form a word's gap asks for (past, participle, plural…), for cards already in the review */\n")
         f.write("window.NL_WF=%s;\n" % json.dumps(word_forms(ready), ensure_ascii=False, separators=(",", ":")))
+        f.write("/* grammar review deck: topic per session + the items it asks from */\n")
+        f.write("window.NL_GP=%s;\n" % json.dumps(gram_pools(ready), ensure_ascii=False, separators=(",", ":")))
     sys.exit(1 if bad else 0)
 
 

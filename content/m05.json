@@ -104,7 +104,8 @@
    "nl": "opgroeien",
    "en": "to grow up",
    "ex": "Mijn moeder is in Zeeland opgegroeid.",
-   "cz": "opgegroeid", "form": "participle"
+   "cz": "opgegroeid",
+   "form": "participle"
   },
   {
    "nl": "het dorp",
@@ -116,19 +117,22 @@
    "nl": "buiten spelen",
    "en": "to play outside",
    "ex": "Na school speelden we altijd buiten.",
-   "cz": "buiten", "form": "-"
+   "cz": "buiten",
+   "form": "-"
   },
   {
    "nl": "de herinnering",
    "en": "memory",
    "ex": "Ik heb mooie herinneringen aan de zomer.",
-   "cz": "herinneringen", "form": "plural"
+   "cz": "herinneringen",
+   "form": "plural"
   },
   {
    "nl": "zich herinneren",
    "en": "to remember",
    "ex": "Ik herinner me mijn eerste schooldag nog goed.",
-   "cz": "herinner", "form": "present"
+   "cz": "herinner",
+   "form": "present"
   },
   {
    "nl": "de basisschool",
@@ -146,7 +150,8 @@
    "nl": "missen",
    "en": "to miss",
    "ex": "Ik mis mijn oma.",
-   "cz": "mis", "form": "present"
+   "cz": "mis",
+   "form": "present"
   },
   {
    "nl": "het verschil",
@@ -460,11 +465,60 @@
    },
    {
     "t": "type",
-    "q": "Participle, same rule: **Gisteren heb ik een uur _____.** (fietsen)",
+    "q": "Participle, same rule: **Gisteren heb ik een uur _____.** (fietsen, participle)",
     "a": [
      "gefietst"
     ],
     "x": "*fiets-* ends in s → *ge-fiets-**t***, just like *fiets**te***."
+   }
+  ],
+  "review": [
+   {
+    "t": "type",
+    "q": "**Vroeger _____ wij in een klein huis.** (wonen, past)",
+    "a": [
+     "woonden"
+    ]
+   },
+   {
+    "t": "type",
+    "q": "**Ik _____ elke dag mijn oma.** (bellen, past)",
+    "a": [
+     "belde"
+    ]
+   },
+   {
+    "t": "mc",
+    "q": "Hij _____ de hele avond. (praten, past)",
+    "o": [
+     "praatte",
+     "praatde"
+    ],
+    "a": 0,
+    "keep": true,
+    "x": "*praat* ends in t ('t kofschip) → **-te**: praat-te."
+   },
+   {
+    "t": "tf",
+    "q": "*reizen* → *ik reisde*",
+    "a": true,
+    "x": "Look at the infinitive: rei**z**en → z is not in 't kofschip → **-de**."
+   },
+   {
+    "t": "type",
+    "q": "Make it past: **We maken een foto.**",
+    "a": [
+     "We maakten een foto.",
+     "Wij maakten een foto."
+    ]
+   },
+   {
+    "t": "order",
+    "q": "*As a child I played football.*",
+    "a": [
+     "Als kind voetbalde ik.",
+     "Ik voetbalde als kind."
+    ]
    }
   ]
  },

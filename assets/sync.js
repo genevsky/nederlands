@@ -16,7 +16,7 @@ function mergeMap(a,b){const o=Object.assign({},a||{});Object.entries(b||{}).for
 function mergeMax(a,b){const o=Object.assign({},a||{});Object.entries(b||{}).forEach(([k,v])=>{o[k]=Math.max(num(o[k]),num(v))});return o}
 function mergeState(a,b){if(!a)return b;if(!b)return a;
   const o=Object.assign({},num(a.ts)>=num(b.ts)?b:a,num(a.ts)>=num(b.ts)?a:b);
-  ['mods','srs','errs','writing'].forEach(k=>{o[k]=mergeMap(a[k],b[k])});
+  ['mods','srs','errs','writing','gram'].forEach(k=>{o[k]=mergeMap(a[k],b[k])});
   o.days=mergeMax(a.days,b.days);o.ts=Math.max(num(a.ts),num(b.ts));return o}
 
 /* ---- server ---- */

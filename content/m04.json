@@ -45,7 +45,8 @@
    "nl": "zich zorgen maken",
    "en": "to worry",
    "ex": "Ik maak me zorgen over zijn cijfers.",
-   "cz": "zorgen", "form": "-"
+   "cz": "zorgen",
+   "form": "-"
   },
   {
    "nl": "het gesprek",
@@ -63,7 +64,8 @@
    "nl": "moeite hebben met",
    "en": "to struggle with",
    "ex": "Ze heeft moeite met Franse grammatica.",
-   "cz": "moeite", "form": "-"
+   "cz": "moeite",
+   "form": "-"
   },
   {
    "nl": "de bijles",
@@ -81,7 +83,8 @@
    "nl": "afspreken",
    "en": "to agree, arrange",
    "ex": "We spreken af dat hij elke dag een half uur oefent.",
-   "cz": "spreken", "form": "present"
+   "cz": "spreken",
+   "form": "present"
   }
  ],
  "read": {
@@ -363,7 +366,7 @@
    },
    {
     "t": "type",
-    "q": "Fill in: **Ik weet niet of hij morgen _____.** (komen)",
+    "q": "Fill in: **Ik weet niet of hij morgen _____.** (komen, present)",
     "a": [
      "komt"
     ]
@@ -384,6 +387,55 @@
      "Ik hoop dat jij kunt komen.",
      "Ik hoop dat jij kan komen.",
      "Ik hoop dat je komen kunt."
+    ]
+   }
+  ],
+  "review": [
+   {
+    "t": "type",
+    "q": "Combine with **omdat**:\n\n*Ik blijf thuis. Ik ben moe.*",
+    "a": [
+     "Ik blijf thuis, omdat ik moe ben.",
+     "Ik blijf thuis omdat ik moe ben."
+    ]
+   },
+   {
+    "t": "mc",
+    "q": "Ik weet dat ze _____.",
+    "o": [
+     "ziek is",
+     "is ziek"
+    ],
+    "a": 0,
+    "keep": true,
+    "x": "After *dat* the verb goes to the **end**."
+   },
+   {
+    "t": "type",
+    "q": "Combine with **als**, starting with the *als*-clause:\n\n*Het is mooi weer. We gaan naar het strand.*",
+    "a": [
+     "Als het mooi weer is, gaan we naar het strand.",
+     "Als het mooi weer is gaan we naar het strand."
+    ]
+   },
+   {
+    "t": "tf",
+    "q": "This is correct: *Ik hoop dat je komt morgen.*",
+    "a": false,
+    "x": "The verb goes to the end of the *dat*-clause: ==Ik hoop dat je morgen komt.=="
+   },
+   {
+    "t": "order",
+    "q": "*I think that the mentor is nice.*",
+    "a": [
+     "Ik denk dat de mentor aardig is."
+    ]
+   },
+   {
+    "t": "type",
+    "q": "Fill in: **Ik weet niet of de les morgen _____.** (beginnen, present)",
+    "a": [
+     "begint"
     ]
    }
   ]
@@ -481,7 +533,7 @@
   },
   {
    "t": "type",
-   "q": "Perfectum: **Het pakketje is gisteren _____.** (bezorgen)",
+   "q": "Perfectum: **Het pakketje is gisteren _____.** (bezorgen, participle)",
    "a": [
     "bezorgd"
    ],
@@ -489,7 +541,7 @@
   },
   {
    "t": "type",
-   "q": "**Ik wil dat u het geld _____.** (terugbetalen)",
+   "q": "**Ik wil dat u het geld _____.** (terugbetalen, present)",
    "a": [
     "terugbetaalt"
    ],

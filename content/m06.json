@@ -117,7 +117,8 @@
    "nl": "inchecken",
    "en": "to check in (with your card)",
    "ex": "Vergeet niet in te checken met je pas.",
-   "cz": "in te checken", "form": "te + infinitive"
+   "cz": "in te checken",
+   "form": "te + infinitive"
   },
   {
    "nl": "de storing",
@@ -135,13 +136,15 @@
    "nl": "vertrekken",
    "en": "to leave, depart",
    "ex": "De trein naar Utrecht vertrekt om acht uur.",
-   "cz": "vertrekt", "form": "present"
+   "cz": "vertrekt",
+   "form": "present"
   },
   {
    "nl": "aankomen",
    "en": "to arrive",
    "ex": "We kwamen pas om elf uur aan.",
-   "cz": "kwamen", "form": "past"
+   "cz": "kwamen",
+   "form": "past"
   },
   {
    "nl": "het retourtje",
@@ -555,6 +558,52 @@
     "a": 0,
     "keep": true,
     "x": "*overstappen* is regular: *stap-* ends in p → **-te**."
+   }
+  ],
+  "review": [
+   {
+    "t": "type",
+    "q": "**Gisteren _____ ik de hele dag thuis.** (blijven, past)",
+    "a": [
+     "bleef"
+    ]
+   },
+   {
+    "t": "type",
+    "q": "**De treinen _____ niet.** (rijden, past)",
+    "a": [
+     "reden"
+    ]
+   },
+   {
+    "t": "mc",
+    "q": "Wij _____ niet wat er aan de hand was. (weten, past)",
+    "o": [
+     "wisten",
+     "weetten"
+    ],
+    "a": 0,
+    "keep": true
+   },
+   {
+    "t": "type",
+    "q": "Make it past: **Ik zie mijn vriend op het station.**",
+    "a": [
+     "Ik zag mijn vriend op het station."
+    ]
+   },
+   {
+    "t": "tf",
+    "q": "This is correct: *Ze kwam te laat, want de bus reed niet.*",
+    "a": true
+   },
+   {
+    "t": "type",
+    "q": "Regular or not? **We _____ een uur.** (wachten, past)",
+    "a": [
+     "wachtten"
+    ],
+    "x": "*wachten* is regular: stem *wacht* ends in t → **-te**, plural **-ten**: wacht-ten."
    }
   ]
  },
