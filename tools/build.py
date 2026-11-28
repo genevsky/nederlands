@@ -248,8 +248,14 @@ def validate(m, mid):
         need(Sp.get("role"), "speak.role: the role-play situation for practising with Claude")
     fb = m.get("feedback")
     if fb and fb.get("text"):
-        codes = re.findall(r"\[\[[^|\]]+\|([^\]]+)\]\]", fb["text"])
-        need(codes, "feedback.text: mark mistakes as [[fragment|CODE]]")
+        marks = re.findall(r"\[\[([^|\]]+)\|([^|\]]+)(?:\|([^|\]]*)\|([^\]]*))?\]\]", fb["text"])
+        codes = [c for _, c, _, _ in marks]
+        need(codes, "feedback.text: mark mistakes as [[fragment|CODE|fix|why]]")
+        need(fb["text"].count("[[") == len(marks), "feedback.text: a mark is malformed (no | or ] inside fix/why)")
+        if int(re.sub(r"\D", "", mid) or 0) >= 7:  # Alex asked, 2026-11-28: every mark explains itself and builds the corrected text
+            for t, c, f, w in marks:
+                need(w.strip(), f"feedback.text: mark {t!r} needs a fix and a why: [[{t}|{c}|fix|why]]")
+                need(f != t, f"feedback.text: mark {t!r}: the fix is the same as the original")
         bad = sorted(set(codes) - CODES)
         need(not bad, f"feedback.text: unknown codes {bad}; use {sorted(CODES)}")
     gate_check(m, mid)

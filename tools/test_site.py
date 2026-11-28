@@ -58,7 +58,12 @@ def main():
             page.on("pageerror", lambda e: (errors.append(f"{name}: {e}"), print("PAGEERROR", e)))
             page.on("console", lambda m: m.type == "error" and errors.append(f"{name} console: {m.text}"))
             page.goto(url + "/#/m/" + mid); page.wait_for_selector("ol.steps")
-            if page.locator(".fbcard").count(): print(name, "feedback items", page.locator(".fbcard .corr").count())
+            if page.locator(".fbcard").count():
+                print(name, "feedback items", page.locator(".fbcard .corr").count())
+                if page.locator(".mtext .ec").count():  # tapping a mark explains it
+                    page.locator(".mtext .ec").first.click()
+                    assert page.locator("#ecx").is_visible(), "mark explanation did not open"
+                    print(name, "mark explained:", page.locator("#ecx").inner_text().replace("\n", " | ")[:140])
             # walk every step, whatever the order (flow 1, flow 2 or a lesson): answer items, then press the action button
             steps = page.locator("ol.steps li").count(); print(name, "steps", steps)
             total = 0

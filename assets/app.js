@@ -24,6 +24,8 @@ C.forEach((c,i)=>{c.slot=i+1;c.id=c.id||mid(c.n)});
 const lab=c=>c.les?'L'+c.les:String(c.n),nameOf=c=>c.les?'Les '+c.les:'Module '+c.n;
 /* writing-feedback codes (feedback.text marks mistakes as [[fragment|CODE]]) */
 const CODES={WO:'Word order: check where the verbs go',VERB:'Verb form: check the subject (ik/hij/we…) and the other verbs',TENSE:'Tense: present, past, perfect?',SP:'Spelling',ART:'Article: de, het, een, or none',ADJ:'Adjective: -e or no -e',PREP:'Preposition: use a different one (or none)',PRON:'Pronoun (hij/hem, je/jouw/uw, die/dat…)',WORD:"Word choice: this word doesn't fit here",MISS:'A word is missing here',PL:'Plural form of the noun',PUNCT:'Punctuation or capital letter','?':'Unclear: say it another way'};
+/* a mark is [[fragment|CODE]] or [[fragment|CODE|fix|why]]; fix may be empty (delete the fragment) */
+const MARK=/\[\[([^|\]]+)\|([^|\]]+)(?:\|([^|\]]*)\|([^\]]*))?\]\]/g;
 const SKILL={words:'Vocabulary',read:'Reading',listen:'Listening',dict:'Dictation',gram:'Grammar',write:'Writing',speak:'Speaking'};
 
 /* ---------- markdown-lite: **b** *i* ==highlight== {word|gloss} tables (| a | b |) ---------- */
@@ -281,15 +283,22 @@ async function viewModule(id,stepArg){setNav('home');view.innerHTML='<p class="m
     const fb=M.feedback;const goals=M.goals||[];
     let h=`<div class="card"><h2>In this module</h2><ul class="goals">${goals.map(g=>'<li>'+esc(g)+'</li>').join('')}</ul><p class="small mut">${M.flow===2?'New grammar explained first · words · reading · listening + dictation · grammar practice · writing · speaking':'Words · reading · listening + dictation · grammar · writing · speaking'}. About 20 minutes; your place is saved at every step.</p></div>`;
     const corr=fb&&fb.items?fb.items.map(f=>`<div class="corr"><p class="you"><s>${esc(f.you)}</s></p><p class="better">${esc(f.better)}</p><p class="small mut">${md(f.why).replace(/^<p>|<\/p>$/g,'')}</p></div>`).join(''):'';
-    if(fb&&fb.text){const plain=fb.text.replace(/\[\[([^|\]]+)\|[^\]]+\]\]/g,'$1'),used=[...new Set([...fb.text.matchAll(/\[\[[^|\]]+\|([^\]]+)\]\]/g)].map(m=>m[1]))];
-      const marked=esc(fb.text).replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g,(m,t,c)=>`<span class="ec">${t}<sup>${c}</sup></span>`).replace(/\n/g,'<br>');
+    let mk=[];
+    if(fb&&fb.text){mk=[...fb.text.matchAll(MARK)].map(m=>({t:m[1],c:m[2],fix:m[3],why:m[4]}));
+      const plain=fb.text.replace(MARK,'$1'),used=[...new Set(mk.map(m=>m.c))],full=mk.length&&mk.every(m=>m.fix!==undefined);
+      let k=0;const marked=esc(fb.text).replace(MARK,(m,t,c)=>`<span class="ec" role="button" tabindex="0" data-k="${k++}">${t}<sup>${esc(c)}</sup></span>`).replace(/\n/g,'<br>');
+      /* corrected version: built from the marks, so every change is visible and explained */
+      const fixed=full?esc(fb.text.replace(MARK,(m,t,c,f)=>f?'\u0001'+f+'\u0002':'')).replace(/ +([.,!?])/g,'$1').replace(/\u0001/g,'<ins>').replace(/\u0002/g,'</ins>'):fb.better?esc(fb.better):'';
       const prevW=(fb.for||[])[0],rev=prevW&&S.writing[prevW]&&S.writing[prevW].rev;
-      h+=`<div class="card fbcard"><h2>Your writing, marked</h2>${fb.note?md(fb.note):''}<p class="small mut">Each code marks a mistake. Try to fix them yourself first: that's how you remember the rule. Then compare with the corrections.</p>
-        <dl class="codes">${used.map(c=>`<div><dt>${esc(c)}</dt><dd>${esc(CODES[c]||'')}</dd></div>`).join('')}</dl><p class="mtext">${marked}</p>
-        <textarea id="fbt" rows="6" lang="nl" spellcheck="false">${esc(rev||plain)}</textarea><div class="row"><button class="btn sm ghost" type="button" id="fbs">Show the corrections</button></div><div id="fbc" hidden>${corr}${fb.better?`<h3>A corrected version</h3><p class="wtext">${esc(fb.better)}</p>`:''}</div></div>`}
+      h+=`<div class="card fbcard"><h2>Your writing, marked</h2>${fb.note?md(fb.note):''}<p class="small mut">Each code marks a mistake. Try to fix them yourself first: that's how you remember the rule. Stuck? Tap a marked part to see what's wrong and the fix. Then compare with the corrected version.</p>
+        <dl class="codes">${used.map(c=>`<div><dt>${esc(c)}</dt><dd>${esc(CODES[c]||'')}</dd></div>`).join('')}</dl><p class="mtext">${marked}</p><div class="ecx" id="ecx" hidden></div>
+        <textarea id="fbt" rows="6" lang="nl" spellcheck="false">${esc(rev||plain)}</textarea><div class="row"><button class="btn sm ghost" type="button" id="fbs">Show the corrections</button></div><div id="fbc" hidden>${fixed?`<h3>Your text, corrected</h3><p class="wtext fixed">${fixed}</p>${full?'<p class="small mut">Green = changed.</p>':''}`:''}${corr?'<h3>The main points</h3>'+corr:''}</div></div>`}
     else if(fb&&fb.items&&fb.items.length)h+=`<div class="card fbcard"><h2>Feedback on your writing</h2>${fb.note?md(fb.note):''}${corr}</div>`;
     const warm=pickErrs(dueErrs(),5).concat(dueGram().slice(0,2),shuffle(dueWords()).slice(0,5)).concat((M.personal||[]).map((p,k)=>Object.assign({id:id+'.p.'+k,kind:'Made for you'},p)));
-    const bindFb=()=>{const b=$('#fbs');if(!b)return;b.onclick=()=>{const prevW=(fb.for||[])[0];if(prevW&&S.writing[prevW]){S.writing[prevW].rev=$('#fbt').value;S.writing[prevW].revts=Date.now();save()}$('#fbc').hidden=false;b.hidden=true;$('#fbc').scrollIntoView({behavior:'smooth'})}};
+    const bindFb=()=>{const x=$('#ecx');$$('.mtext .ec').forEach(e=>{const show=()=>{const m=mk[+e.dataset.k],on=!e.classList.contains('on');$$('.mtext .ec.on').forEach(o=>o.classList.remove('on'));x.hidden=!on;if(!on)return;e.classList.add('on');
+        x.innerHTML=`<p><b class="code">${esc(m.c)}</b> <span class="mut">${esc(CODES[m.c]||'')}</span></p>${m.fix!==undefined?`<p class="fx"><s>${esc(m.t)}</s> → ${m.fix?`<b>${esc(m.fix)}</b>`:'<i>(leave it out)</i>'}</p>`:''}${m.why?`<div class="small">${md(m.why)}</div>`:''}`};
+      e.onclick=show;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();show()}}});
+      const b=$('#fbs');if(!b)return;b.onclick=()=>{const prevW=(fb.for||[])[0];if(prevW&&S.writing[prevW]){S.writing[prevW].rev=$('#fbt').value;S.writing[prevW].revts=Date.now();save()}$('#fbc').hidden=false;b.hidden=true;$('#fbc').scrollIntoView({behavior:'smooth'})}};
     if(warm.length){h+=`<div class="card"><h2>Warm-up</h2><p class="small mut">${warm.length} quick questions: your recent mistakes and words that are due. Retrieval first, new material after.</p><div id="run"></div></div>`;stage.innerHTML=h;bindFb();
       runItems($('#run'),warm,{retry:true,review:reviewHook,onDone:()=>{$('#run').innerHTML='<p class="good-t">✓ Warm-up done</p>';setAct(nxl,nxt,true)}})}
     else{stage.innerHTML=h;bindFb();setAct('Start: '+STEPS[1][1],nxt,true)}}
